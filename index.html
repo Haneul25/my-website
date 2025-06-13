@@ -24,6 +24,7 @@
     <ul>
       <li id="tab-home" class="active">Home</li>
       <li id="tab-game">Game</li>
+      <li id="tab-gallery">Gallery</li>
     </ul>
   </div>
   <div id="content">
@@ -47,12 +48,23 @@
       <p id="score">Score: 0</p>
       <p id="gameOver" class="hidden">Game Over! Press an arrow key to restart.</p>
     </div>
+
+    <!-- Gallery Section -->
+    <div id="gallery" class="hidden">
+      <h1>Gallery</h1>
+      <div id="galleryGrid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 16px; max-width: 600px; margin: 0 auto;">
+        <img src="https://via.placeholder.com/120" alt="Gallery Image 1" style="width: 100%; border-radius: 8px;" />
+        <img src="https://via.placeholder.com/120" alt="Gallery Image 2" style="width: 100%; border-radius: 8px;" />
+        <img src="https://via.placeholder.com/120" alt="Gallery Image 3" style="width: 100%; border-radius: 8px;" />
+        <img src="https://via.placeholder.com/120" alt="Gallery Image 4" style="width: 100%; border-radius: 8px;" />
+      </div>
+    </div>
   </div>
 
   <script>
     // Tab switching
-    const tabs = { home: document.getElementById('home'), game: document.getElementById('game') };
-    const tabBtns = { home: document.getElementById('tab-home'), game: document.getElementById('tab-game') };
+    const tabs = { home: document.getElementById('home'), game: document.getElementById('game'), gallery: document.getElementById('gallery') };
+    const tabBtns = { home: document.getElementById('tab-home'), game: document.getElementById('tab-game'), gallery: document.getElementById('tab-gallery') };
     function switchTab(tab) {
       Object.keys(tabs).forEach(t => {
         tabs[t].classList.toggle('hidden', t !== tab);
@@ -62,6 +74,7 @@
     }
     tabBtns.home.addEventListener('click', () => switchTab('home'));
     tabBtns.game.addEventListener('click', () => switchTab('game'));
+    tabBtns.gallery.addEventListener('click', () => switchTab('gallery'));
 
     // Snake game logic
     const canvas = document.getElementById('gameCanvas');
@@ -135,7 +148,7 @@
 
     function resetGame() {
       snake = [{ x: 10, y: 10 }];
-      vel = { x: 0, y: 0 };
+      vel = { x: 1, y: 0 };
       score = 0;
       scoreEl.textContent = 'Score: 0';
       gameOverEl.classList.add('hidden');
