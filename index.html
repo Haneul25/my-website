@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Initial Website</title>
+  <title>Snake Game</title>
   <link rel="stylesheet" href="styles.css"/>
 </head>
 <body>
   <header>
-    <h1>Welcome to My Website</h1>
+    <h1>Snake Game</h1>
     <nav>
       <a href="#">Home</a>
       <a href="#">About</a>
@@ -17,10 +17,10 @@
   </header>
 
   <main>
-    <section>
-      <h2>About this site</h2>
-      <p>This is your starter scaffold—feel free to edit text, add sections, swap in framework code, etc.</p>
-    </section>
+    <!-- This is where the game draws -->
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+    <p id="score">Score: 0</p>
+    <p id="gameOver" class="hidden">Game Over! Press an arrow key to restart.</p>
   </main>
 
   <footer>
