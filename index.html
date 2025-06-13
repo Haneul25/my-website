@@ -3,30 +3,148 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Snake Game</title>
-  <link rel="stylesheet" href="styles.css"/>
+  <title>My Personal Website</title>
+  <style>
+    /* Layout */
+    body { margin: 0; display: flex; height: 100vh; font-family: Arial, sans-serif; }
+    #sidebar { width: 200px; background: #333; color: #fff; }
+    #sidebar ul { list-style: none; padding: 0; margin: 0; }
+    #sidebar li { padding: 15px; cursor: pointer; }
+    #sidebar li:hover, #sidebar .active { background: #444; }
+    #content { flex: 1; padding: 20px; overflow: auto; }
+    .hidden { display: none; }
+    /* Snake Game Styles */
+    #gameCanvas { background: #000; display: block; margin: 20px auto; border: 2px solid #333; }
+    #score { text-align: center; font-size: 1.2rem; }
+    #gameOver { text-align: center; color: red; font-weight: bold; }
+  </style>
 </head>
 <body>
-  <header>
-    <h1>Snake Game</h1>
-    <nav>
-      <a href="#">Home</a>
-      <a href="#">About</a>
-      <a href="#">Contact</a>
-    </nav>
-  </header>
+  <div id="sidebar">
+    <ul>
+      <li id="tab-home" class="active">Home</li>
+      <li id="tab-game">Game</li>
+    </ul>
+  </div>
+  <div id="content">
+    <!-- Home Section -->
+    <div id="home">
+      <h1>Welcome to My Personal Website</h1>
+      <section>
+        <h2>About Me</h2>
+        <p>Hi! I'm [Your Name], a web developer and game enthusiast. This is my personal site where you can learn a bit about me and play a fun Snake game under the Game tab.</p>
+      </section>
+      <section>
+        <h2>Contact</h2>
+        <p>Email: your.email@example.com</p>
+      </section>
+    </div>
 
-  <main>
-    <!-- This is where the game draws -->
-    <canvas id="gameCanvas" width="400" height="400"></canvas>
-    <p id="score">Score: 0</p>
-    <p id="gameOver" class="hidden">Game Over! Press an arrow key to restart.</p>
-  </main>
+    <!-- Game Section -->
+    <div id="game" class="hidden">
+      <h1>Snake Game</h1>
+      <canvas id="gameCanvas" width="400" height="400"></canvas>
+      <p id="score">Score: 0</p>
+      <p id="gameOver" class="hidden">Game Over! Press an arrow key to restart.</p>
+    </div>
+  </div>
 
-  <footer>
-    <p>&copy; 2025 My Website</p>
-  </footer>
+  <script>
+    // Tab switching
+    const tabs = { home: document.getElementById('home'), game: document.getElementById('game') };
+    const tabBtns = { home: document.getElementById('tab-home'), game: document.getElementById('tab-game') };
+    function switchTab(tab) {
+      Object.keys(tabs).forEach(t => {
+        tabs[t].classList.toggle('hidden', t !== tab);
+        tabBtns[t].classList.toggle('active', t === tab);
+      });
+      if (tab === 'game') resetGame();
+    }
+    tabBtns.home.addEventListener('click', () => switchTab('home'));
+    tabBtns.game.addEventListener('click', () => switchTab('game'));
 
-  <script src="script.js"></script>
+    // Snake game logic
+    const canvas = document.getElementById('gameCanvas');
+    const ctx = canvas.getContext('2d');
+    const scoreEl = document.getElementById('score');
+    const gameOverEl = document.getElementById('gameOver');
+
+    const gridSize = 20;
+    const tileCount = canvas.width / gridSize;
+
+    let snake, vel, food, score, gameLoop;
+
+    function draw() {
+      const head = { x: snake[0].x + vel.x, y: snake[0].y + vel.y };
+      snake.unshift(head);
+
+      // Check collisions
+      if (
+        head.x < 0 || head.x >= tileCount ||
+        head.y < 0 || head.y >= tileCount ||
+        snake.slice(1).some(seg => seg.x === head.x && seg.y === head.y)
+      ) return endGame();
+
+      // Eat food
+      if (head.x === food.x && head.y === food.y) {
+        score++;
+        scoreEl.textContent = 'Score: ' + score;
+        placeFood();
+      } else {
+        snake.pop();
+      }
+
+      // Draw background
+      ctx.fillStyle = 'black';
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      // Draw snake
+      ctx.fillStyle = 'lime';
+      snake.forEach(seg => {
+        ctx.fillRect(seg.x * gridSize, seg.y * gridSize, gridSize - 2, gridSize - 2);
+      });
+
+      // Draw food
+      ctx.fillStyle = 'red';
+      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
+    }
+
+    function placeFood() {
+      food = {
+        x: Math.floor(Math.random() * tileCount),
+        y: Math.floor(Math.random() * tileCount)
+      };
+      if (snake.some(seg => seg.x === food.x && seg.y === food.y)) placeFood();
+    }
+
+    function endGame() {
+      clearInterval(gameLoop);
+      gameOverEl.classList.remove('hidden');
+    }
+
+    window.addEventListener('keydown', e => {
+      switch (e.key) {
+        case 'ArrowUp':    if (vel.y !== 1) vel = { x: 0, y: -1 }; break;
+        case 'ArrowDown':  if (vel.y !== -1) vel = { x: 0, y: 1 }; break;
+        case 'ArrowLeft':  if (vel.x !== 1) vel = { x: -1, y: 0 }; break;
+        case 'ArrowRight': if (vel.x !== -1) vel = { x: 1, y: 0 }; break;
+        default: return;
+      }
+      if (!gameOverEl.classList.contains('hidden')) resetGame();
+    });
+
+    function resetGame() {
+      snake = [{ x: 10, y: 10 }];
+      vel = { x: 0, y: 0 };
+      score = 0;
+      scoreEl.textContent = 'Score: 0';
+      gameOverEl.classList.add('hidden');
+      placeFood();
+      gameLoop = setInterval(draw, 100);
+    }
+
+    // Initialize
+    resetGame();
+  </script>
 </body>
 </html>
