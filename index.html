@@ -63,8 +63,8 @@
 
   <script>
     // Tab switching
-    const tabs = { home: document.getElementById('home'), game: document.getElementById('game'), gallery: document.getElementById('gallery') };
-    const tabBtns = { home: document.getElementById('tab-home'), game: document.getElementById('tab-game'), gallery: document.getElementById('tab-gallery') };
+    const tabs = { home: document.getElementById('home'), game: document.getElementById('game') };
+    const tabBtns = { home: document.getElementById('tab-home'), game: document.getElementById('tab-game') };
     function switchTab(tab) {
       Object.keys(tabs).forEach(t => {
         tabs[t].classList.toggle('hidden', t !== tab);
@@ -74,7 +74,6 @@
     }
     tabBtns.home.addEventListener('click', () => switchTab('home'));
     tabBtns.game.addEventListener('click', () => switchTab('game'));
-    tabBtns.gallery.addEventListener('click', () => switchTab('gallery'));
 
     // Snake game logic
     const canvas = document.getElementById('gameCanvas');
@@ -88,23 +87,28 @@
     let snake, vel, food, score, gameLoop;
 
     function draw() {
-      const head = { x: snake[0].x + vel.x, y: snake[0].y + vel.y };
-      snake.unshift(head);
+      // Only move when game has started (vel != 0)
+      if (vel.x !== 0 || vel.y !== 0) {
+        const head = { x: snake[0].x + vel.x, y: snake[0].y + vel.y };
+        snake.unshift(head);
 
-      // Check collisions
-      if (
-        head.x < 0 || head.x >= tileCount ||
-        head.y < 0 || head.y >= tileCount ||
-        snake.slice(1).some(seg => seg.x === head.x && seg.y === head.y)
-      ) return endGame();
+        // Check collisions
+        if (
+          head.x < 0 || head.x >= tileCount ||
+          head.y < 0 || head.y >= tileCount ||
+          snake.slice(1).some(seg => seg.x === head.x && seg.y === head.y)
+        ) {
+          return endGame();
+        }
 
-      // Eat food
-      if (head.x === food.x && head.y === food.y) {
-        score++;
-        scoreEl.textContent = 'Score: ' + score;
-        placeFood();
-      } else {
-        snake.pop();
+        // Eat food
+        if (head.x === food.x && head.y === food.y) {
+          score++;
+          scoreEl.textContent = 'Score: ' + score;
+          placeFood();
+        } else {
+          snake.pop();
+        }
       }
 
       // Draw background
@@ -133,30 +137,39 @@
     function endGame() {
       clearInterval(gameLoop);
       gameOverEl.classList.remove('hidden');
+      vel = { x: 0, y: 0 }; // stop movement after game over
     }
 
     window.addEventListener('keydown', e => {
+      // If game over, restart before handling direction
+      if (!gameOverEl.classList.contains('hidden')) {
+        resetGame();
+      }
+
+      // Handle arrow keys to set direction
       switch (e.key) {
         case 'ArrowUp':    if (vel.y !== 1) vel = { x: 0, y: -1 }; break;
         case 'ArrowDown':  if (vel.y !== -1) vel = { x: 0, y: 1 }; break;
         case 'ArrowLeft':  if (vel.x !== 1) vel = { x: -1, y: 0 }; break;
         case 'ArrowRight': if (vel.x !== -1) vel = { x: 1, y: 0 }; break;
-        default: return;
+        default: return; // ignore other keys
       }
-      if (!gameOverEl.classList.contains('hidden')) resetGame();
     });
 
     function resetGame() {
       snake = [{ x: 10, y: 10 }];
-      vel = { x: 1, y: 0 };
+      vel = { x: 0, y: 0 };
       score = 0;
       scoreEl.textContent = 'Score: 0';
       gameOverEl.classList.add('hidden');
       placeFood();
+
+      // Clear any existing loop and start fresh
+      clearInterval(gameLoop);
       gameLoop = setInterval(draw, 100);
     }
 
-    // Initialize
+    // Initialize at load (will draw initial state without moving)
     resetGame();
   </script>
 </body>
