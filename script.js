@@ -1,4 +1,4 @@
-// ———————————— Firebase Setup ————————————
+// — Firebase Initialization —
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-app.js';
 import { getAnalytics }  from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-analytics.js';
 import { getAuth, signInAnonymously } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-auth.js';
@@ -9,7 +9,6 @@ import {
   getStorage, ref as storageRef, uploadBytes, getDownloadURL
 } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
 
-// Replace with YOUR config from Firebase console (note .appspot.com bucket)
 const firebaseConfig = {
   apiKey: "AIzaSyD1yzE793NmHJubwTAV823bm9-bYGQCrKc",
   authDomain: "gallery-6e158.firebaseapp.com",
@@ -20,24 +19,28 @@ const firebaseConfig = {
   measurementId: "G-JXE6ZZH3Y6"
 };
 
-const app       = initializeApp(firebaseConfig);
+const app     = initializeApp(firebaseConfig);
 getAnalytics(app);
-const auth      = getAuth(app);
-const db        = getFirestore(app);
-const storage   = getStorage(app);
+const auth    = getAuth(app);
 signInAnonymously(auth).catch(console.error);
+const db      = getFirestore(app);
+const storage = getStorage(app);
 
-// ———————————— TAB LOGIC ————————————
-const tabs   = {
-  home: document.getElementById('home'),
-  game: document.getElementById('game'),
+// — TAB NAVIGATION —
+const tabs = {
+  home:    document.getElementById('home'),
+  game:    document.getElementById('game'),
   gallery: document.getElementById('gallery')
 };
 const tabBtns = {
-  home: document.getElementById('tab-home'),
-  game: document.getElementById('tab-game'),
+  home:    document.getElementById('tab-home'),
+  game:    document.getElementById('tab-game'),
   gallery: document.getElementById('tab-gallery')
 };
+
+tabBtns.home.addEventListener('click',  () => switchTab('home'));
+tabBtns.game.addEventListener('click',  () => switchTab('game'));
+tabBtns.gallery.addEventListener('click', () => switchTab('gallery'));
 
 function switchTab(tab) {
   Object.keys(tabs).forEach(t => {
@@ -48,11 +51,7 @@ function switchTab(tab) {
   if (tab === 'gallery') loadGallery();
 }
 
-tabBtns.home.addEventListener('click',  () => switchTab('home'));
-tabBtns.game.addEventListener('click',  () => switchTab('game'));
-tabBtns.gallery.addEventListener('click', () => switchTab('gallery'));
-
-// ———————————— SNAKE GAME ————————————
+// — SNAKE GAME —
 const canvas     = document.getElementById('gameCanvas');
 const ctx        = canvas.getContext('2d');
 const scoreEl    = document.getElementById('score');
@@ -61,62 +60,13 @@ const gridSize   = 20;
 const tileCount  = canvas.width / gridSize;
 let snake, vel, food, score, gameLoop;
 
-function draw() {
-  if (vel.x || vel.y) {
-    const head = { x: snake[0].x + vel.x, y: snake[0].y + vel.y };
-    snake.unshift(head);
-
-    // collisions
-    if (
-      head.x < 0 || head.x >= tileCount ||
-      head.y < 0 || head.y >= tileCount ||
-      snake.slice(1).some(s=> s.x===head.x && s.y===head.y)
-    ) return endGame();
-
-    // eat
-    if (head.x===food.x && head.y===food.y) {
-      score++;
-      scoreEl.textContent = 'Score: ' + score;
-      placeFood();
-    } else {
-      snake.pop();
-    }
-  }
-
-  // draw
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-
-  ctx.fillStyle = 'lime';
-  snake.forEach(seg =>
-    ctx.fillRect(seg.x*gridSize, seg.y*gridSize, gridSize-2, gridSize-2)
-  );
-
-  ctx.fillStyle = 'red';
-  ctx.fillRect(food.x*gridSize, food.y*gridSize, gridSize-2, gridSize-2);
-}
-
-function placeFood() {
-  food = {
-    x: Math.floor(Math.random()*tileCount),
-    y: Math.floor(Math.random()*tileCount)
-  };
-  if (snake.some(s=> s.x===food.x && s.y===food.y)) placeFood();
-}
-
-function endGame() {
-  clearInterval(gameLoop);
-  gameOverEl.classList.remove('hidden');
-  vel = { x: 0, y: 0 };
-}
-
 window.addEventListener('keydown', e => {
   if (!gameOverEl.classList.contains('hidden')) resetGame();
   switch (e.key) {
-    case 'ArrowUp':    if (vel.y!==1) vel = { x:0, y:-1 }; break;
-    case 'ArrowDown':  if (vel.y!==-1) vel = { x:0, y:1 }; break;
-    case 'ArrowLeft':  if (vel.x!==1) vel = { x:-1,y:0 }; break;
-    case 'ArrowRight': if (vel.x!==-1) vel = { x:1, y:0 }; break;
+    case 'ArrowUp':    if (vel.y !== 1) vel = { x:0, y:-1 }; break;
+    case 'ArrowDown':  if (vel.y !== -1) vel = { x:0, y:1 }; break;
+    case 'ArrowLeft':  if (vel.x !== 1) vel = { x:-1,y:0 }; break;
+    case 'ArrowRight': if (vel.x !== -1) vel = { x:1, y:0 }; break;
     default: return;
   }
 });
@@ -132,37 +82,58 @@ function resetGame() {
   gameLoop = setInterval(draw, 100);
 }
 
-// start
+function draw() {
+  if (vel.x || vel.y) {
+    const head = { x: snake[0].x + vel.x, y: snake[0].y + vel.y };
+    snake.unshift(head);
+    if (head.x < 0||head.x>=tileCount||head.y<0||head.y>=tileCount||
+        snake.slice(1).some(s=>s.x===head.x&&s.y===head.y)) return endGame();
+    if (head.x===food.x&&head.y===food.y) {
+      score++;
+      scoreEl.textContent = 'Score: '+score;
+      placeFood();
+    } else snake.pop();
+  }
+  ctx.fillStyle='black';ctx.fillRect(0,0,canvas.width,canvas.height);
+  ctx.fillStyle='lime';snake.forEach(s=>ctx.fillRect(s.x*gridSize,s.y*gridSize,gridSize-2,gridSize-2));
+  ctx.fillStyle='red';ctx.fillRect(food.x*gridSize,food.y*gridSize,gridSize-2,gridSize-2);
+}
+
+function placeFood() {
+  food={x:Math.floor(Math.random()*tileCount),y:Math.floor(Math.random()*tileCount)};
+  if(snake.some(s=>s.x===food.x&&s.y===food.y))placeFood();
+}
+
+function endGame() {
+  clearInterval(gameLoop);
+  gameOverEl.classList.remove('hidden');
+  vel={x:0,y:0};
+}
+
+// Initialize Snake
 resetGame();
 
-// ———————————— PHOTO GALLERY ————————————
+// — PHOTO GALLERY —
 const fileInput        = document.getElementById('fileInput');
 const uploadBtn        = document.getElementById('uploadBtn');
 const galleryContainer = document.getElementById('galleryContainer');
 
 uploadBtn.addEventListener('click', async () => {
   const file = fileInput.files[0];
-  if (!file) return alert('Please select an image first.');
-
-  // upload to Storage
-  const imgRef = storageRef(storage, `gallery/${Date.now()}_${file.name}`);
-  await uploadBytes(imgRef, file);
-
-  // get URL & save to Firestore
+  if(!file) return alert('Select an image!');
+  const imgRef = storageRef(storage,`gallery/${Date.now()}_${file.name}`);
+  await uploadBytes(imgRef,file);
   const url = await getDownloadURL(imgRef);
-  await addDoc(collection(db, 'photos'), { url, timestamp: Date.now() });
-
-  // refresh gallery
+  await addDoc(collection(db,'photos'),{url,timestamp:Date.now()});
   loadGallery();
 });
 
 async function loadGallery() {
-  galleryContainer.innerHTML = '';
-  const q    = query(collection(db, 'photos'), orderBy('timestamp','desc'));
-  const snap = await getDocs(q);
-  snap.forEach(doc => {
-    const img = document.createElement('img');
-    img.src   = doc.data().url;
+  galleryContainer.innerHTML='';
+  const snap=await getDocs(query(collection(db,'photos'),orderBy('timestamp','desc')));
+  snap.forEach(doc=>{
+    const img=document.createElement('img');
+    img.src=doc.data().url;
     galleryContainer.appendChild(img);
   });
 }
