@@ -13,14 +13,14 @@ const firebaseConfig = {
   apiKey: "AIzaSyD1yzE793NmHJubwTAV823bm9-bYGQCrKc",
   authDomain: "gallery-6e158.firebaseapp.com",
   projectId: "gallery-6e158",
-  storageBucket: "gallery-6e158.appspot.com",
+  storageBucket: "gallery-6e158.firebasestorage.app",
   messagingSenderId: "942823013242",
   appId: "1:942823013242:web:3e84818d0112765a8ff4c3",
   measurementId: "G-JXE6ZZH3Y6"
 };
 
 const app     = initializeApp(firebaseConfig);
-getAnalytics(app);
+const analytics = getAnalytics(app);
 const auth    = getAuth(app);
 signInAnonymously(auth).catch(console.error);
 const db      = getFirestore(app);
