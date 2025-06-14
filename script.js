@@ -9,15 +9,17 @@ import {
   getStorage, ref as storageRef, uploadBytes, getDownloadURL
 } from 'https://www.gstatic.com/firebasejs/11.9.1/firebase-storage.js';
 
+// For Firebase JS SDK v7.20.0 and later, measurementId is optional
 const firebaseConfig = {
   apiKey: "AIzaSyD1yzE793NmHJubwTAV823bm9-bYGQCrKc",
   authDomain: "gallery-6e158.firebaseapp.com",
   projectId: "gallery-6e158",
-  storageBucket: "gallery-6e158.firebasestorage.app",
+  storageBucket: "gallery-6e158.appspot.com",
   messagingSenderId: "942823013242",
   appId: "1:942823013242:web:3e84818d0112765a8ff4c3",
   measurementId: "G-JXE6ZZH3Y6"
 };
+
 
 const app     = initializeApp(firebaseConfig);
 const analytics = getAnalytics(app);
