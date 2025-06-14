@@ -4,114 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Personal Website</title>
+
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
+    rel="stylesheet"
+  >
 
-  <style>
-    /* Variables & Base */
-    :root {
-      --font-sans: 'Poppins', sans-serif;
-      --primary: #4f46e5;
-      --primary-dark: #3730a3;
-      --accent: #facc15;
-      --bg-light: #f9fafb;
-      --text-dark: #1f2937;
-      --text-light: #f3f4f6;
-    }
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body {
-      display: flex;
-      height: 100vh;
-      font-family: var(--font-sans);
-      background: var(--bg-light);
-      color: var(--text-dark);
-    }
-
-    /* Sidebar */
-    #sidebar {
-      width: 200px;
-      background: var(--primary);
-      color: var(--text-light);
-    }
-    #sidebar ul { list-style: none; }
-    #sidebar li {
-      padding: 15px;
-      cursor: pointer;
-      transition: background 0.2s ease;
-    }
-    #sidebar li:hover,
-    #sidebar .active {
-      background: var(--primary-dark);
-    }
-
-    /* Content container */
-    #content {
-      flex: 1;
-      padding: 20px;
-      overflow: auto;
-    }
-
-    /* Card wrapper */
-    .card {
-      background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-      padding: 1.5rem;
-      margin-bottom: 2rem;
-      transition: transform 0.2s ease, box-shadow 0.2s ease;
-      animation: fadeInUp 0.5s ease both;
-    }
-    .card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-    }
-
-    /* Fade-in animation */
-    @keyframes fadeInUp {
-      from { opacity: 0; transform: translateY(20px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    /* Tab hide/show */
-    .hidden { display: none; }
-
-    /* Snake Game Styles */
-    #gameCanvas {
-      background: #000;
-      border-radius: 8px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
-      display: block;
-      margin: 20px auto;
-    }
-    #score, #gameOver {
-      text-align: center;
-      color: var(--primary);
-      text-shadow: 1px 1px rgba(0,0,0,0.1);
-      font-weight: 600;
-    }
-
-    /* Gallery Styles */
-    #galleryContainer {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-      margin-top: 1rem;
-    }
-    #galleryContainer img {
-      width: 150px;
-      border-radius: 8px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    }
-
-    /* Responsive */
-    @media (max-width: 600px) {
-      body { flex-direction: column; }
-      #sidebar { width: 100%; display: flex; }
-      #sidebar li { flex: 1; text-align: center; }
-    }
-  </style>
+  <!-- Your custom styles -->
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
   <div id="sidebar">
@@ -121,13 +24,14 @@
       <li id="tab-gallery">Gallery</li>
     </ul>
   </div>
+
   <div id="content">
-    <!-- Home Section -->
+    <!-- Home -->
     <div id="home" class="card">
       <h1>Welcome to My Personal Website</h1>
       <section>
         <h2>About Me</h2>
-        <p>Hi! I'm Evan Kang. I’m a web developer and game enthusiast. Explore my site to learn more or play a Snake game under the Game tab.</p>
+        <p>Hi! I'm Evan Kang.</p>
       </section>
       <section>
         <h2>Contact</h2>
@@ -135,7 +39,7 @@
       </section>
     </div>
 
-    <!-- Game Section -->
+    <!-- Snake Game -->
     <div id="game" class="card hidden">
       <h1>Snake Game</h1>
       <canvas id="gameCanvas" width="400" height="400"></canvas>
@@ -143,7 +47,7 @@
       <p id="gameOver" class="hidden">Game Over! Press an arrow key to restart.</p>
     </div>
 
-    <!-- Gallery Section -->
+    <!-- Photo Gallery -->
     <div id="gallery" class="card hidden">
       <h1>Photo Gallery</h1>
       <input type="file" id="fileInput" accept="image/*" />
@@ -152,93 +56,7 @@
     </div>
   </div>
 
-  <script>
-    // Tab switching logic
-    const tabs = {
-      home: document.getElementById('home'),
-      game: document.getElementById('game'),
-      gallery: document.getElementById('gallery')
-    };
-    const tabBtns = {
-      home: document.getElementById('tab-home'),
-      game: document.getElementById('tab-game'),
-      gallery: document.getElementById('tab-gallery')
-    };
-    function switchTab(tab) {
-      Object.keys(tabs).forEach(t => {
-        tabs[t].classList.toggle('hidden', t !== tab);
-        tabBtns[t].classList.toggle('active', t === tab);
-      });
-      if (tab === 'game') resetGame();
-      if (tab === 'gallery') loadGallery();
-    }
-    tabBtns.home.addEventListener('click', () => switchTab('home'));
-    tabBtns.game.addEventListener('click', () => switchTab('game'));
-    tabBtns.gallery.addEventListener('click', () => switchTab('gallery'));
-
-    // Snake game logic
-    const canvas = document.getElementById('gameCanvas');
-    const ctx = canvas.getContext('2d');
-    const scoreEl = document.getElementById('score');
-    const gameOverEl = document.getElementById('gameOver');
-    const gridSize = 20;
-    const tileCount = canvas.width / gridSize;
-    let snake, vel, food, score, gameLoop;
-
-    function draw() {
-      if (vel.x || vel.y) {
-        const head = { x: snake[0].x + vel.x, y: snake[0].y + vel.y };
-        snake.unshift(head);
-        if (
-          head.x < 0 || head.x >= tileCount ||
-          head.y < 0 || head.y >= tileCount ||
-          snake.slice(1).some(seg => seg.x === head.x && seg.y === head.y)
-        ) return endGame();
-        if (head.x === food.x && head.y === food.y) {
-          score++;
-          scoreEl.textContent = 'Score: ' + score;
-          placeFood();
-        } else snake.pop();
-      }
-      ctx.fillStyle = 'black';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
-      ctx.fillStyle = 'lime';
-      snake.forEach(seg => ctx.fillRect(seg.x * gridSize, seg.y * gridSize, gridSize - 2, gridSize - 2));
-      ctx.fillStyle = 'red';
-      ctx.fillRect(food.x * gridSize, food.y * gridSize, gridSize - 2, gridSize - 2);
-    }
-    function placeFood() {
-      food = { x: Math.floor(Math.random() * tileCount), y: Math.floor(Math.random() * tileCount) };
-      if (snake.some(seg => seg.x === food.x && seg.y === food.y)) placeFood();
-    }
-    function endGame() {
-      clearInterval(gameLoop);
-      gameOverEl.classList.remove('hidden');
-      vel = { x: 0, y: 0 };
-    }
-    window.addEventListener('keydown', e => {
-      if (!gameOverEl.classList.contains('hidden')) resetGame();
-      switch (e.key) {
-        case 'ArrowUp': if (vel.y !== 1) vel = { x: 0, y: -1 }; break;
-        case 'ArrowDown': if (vel.y !== -1) vel = { x: 0, y: 1 }; break;
-        case 'ArrowLeft': if (vel.x !== 1) vel = { x: -1, y: 0 }; break;
-        case 'ArrowRight': if (vel.x !== -1) vel = { x: 1, y: 0 }; break;
-        default: return;
-      }
-    });
-    function resetGame() {
-      snake = [{ x: 10, y: 10 }]; vel = { x: 0, y: 0 }; score = 0;
-      scoreEl.textContent = 'Score: 0'; gameOverEl.classList.add('hidden'); placeFood();
-      clearInterval(gameLoop); gameLoop = setInterval(draw, 100);
-    }
-
-    // Gallery logic placeholder (to be implemented)
-    function loadGallery() {
-      // fetch and render images here
-    }
-
-    // Initialize default view
-    resetGame();
-  </script>
+  <!-- Main logic: Firebase + Game + Gallery -->
+  <script type="module" src="script.js"></script>
 </body>
 </html>

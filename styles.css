@@ -1,13 +1,106 @@
-* { margin:0; padding:0; box-sizing:border-box; }
-body { font-family:Arial,sans-serif; display:flex; flex-direction:column; align-items:center; }
-
-header { background:#333; color:#fff; width:100%; padding:1rem; }
-nav a { color:#fff; margin-right:1rem; text-decoration:none; }
-
-main { text-align:center; padding:1rem; }
-canvas { background:#000; border:2px solid #333; display:block; margin:0 auto; }
-#score { margin-top:.5rem; }
-#gameOver { color:red; font-weight:bold; margin-top:1rem; }
-.hidden { display:none; }
-
-footer { background:#f5f5f5; width:100%; text-align:center; padding:1rem; margin-top:2rem; }
+/* Variables & Base */
+:root {
+    --font-sans: 'Poppins', sans-serif;
+    --primary: #4f46e5;
+    --primary-dark: #3730a3;
+    --accent: #facc15;
+    --bg-light: #f9fafb;
+    --text-dark: #1f2937;
+    --text-light: #f3f4f6;
+  }
+  
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    display: flex;
+    height: 100vh;
+    font-family: var(--font-sans);
+    background: var(--bg-light);
+    color: var(--text-dark);
+  }
+  
+  /* Sidebar */
+  #sidebar {
+    width: 200px;
+    background: var(--primary);
+    color: var(--text-light);
+  }
+  #sidebar ul { list-style: none; }
+  #sidebar li {
+    padding: 15px;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  #sidebar li:hover,
+  #sidebar .active {
+    background: var(--primary-dark);
+  }
+  
+  /* Content */
+  #content {
+    flex: 1;
+    padding: 20px;
+    overflow: auto;
+  }
+  
+  /* Cards */
+  .card {
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    animation: fadeInUp 0.5s ease both;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+  }
+  
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  
+  .hidden { display: none; }
+  
+  /* Snake Game */
+  #gameCanvas {
+    background: #000;
+    border-radius: 8px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+    display: block;
+    margin: 20px auto;
+  }
+  #score, #gameOver {
+    text-align: center;
+    color: var(--primary);
+    text-shadow: 1px 1px rgba(0,0,0,0.1);
+    font-weight: 600;
+  }
+  
+  /* Photo Gallery */
+  #galleryContainer {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 1rem;
+  }
+  #galleryContainer img {
+    width: 150px;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  }
+  
+  /* Responsive */
+  @media (max-width: 600px) {
+    body { flex-direction: column; }
+    #sidebar { width: 100%; display: flex; }
+    #sidebar li { flex: 1; text-align: center; }
+  }
+  
