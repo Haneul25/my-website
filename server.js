@@ -77,11 +77,10 @@ app.get('/api/click-count', (req, res) => {
   res.json({ count: clickCount });
 });
 
-// —————— HTML5 History Fallback ——————
-// so client-side routing still works if you hit a deep link
-app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
+// Serve index.html for any path that doesn't match /api or /uploads or static files
+app.get('/*', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  });
 
 // Start server
 app.listen(PORT, () => {
