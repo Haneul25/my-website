@@ -8,10 +8,7 @@
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
-    rel="stylesheet"
-  >
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
   <!-- Your custom styles -->
   <link rel="stylesheet" href="styles.css">
@@ -22,6 +19,7 @@
       <li id="tab-home" class="active">Home</li>
       <li id="tab-game">Game</li>
       <li id="tab-gallery">Gallery</li>
+      <li id="tab-blog">Blog</li>
     </ul>
   </div>
 
@@ -31,7 +29,7 @@
       <h1>Welcome to My Personal Website</h1>
       <section>
         <h2>About Me</h2>
-        <p>Hi! I'm Evan Kang. (adding more infos here is unncessary, so I will just do this later as I should work on different things)</p>
+        <p>Hi! I'm Evan Kang.</p>
       </section>
       <section>
         <h2>Contact</h2>
@@ -54,9 +52,26 @@
       <button id="uploadBtn">Upload Photo</button>
       <div id="galleryContainer"></div>
     </div>
+
+    <!-- Blog Section -->
+    <div id="blog" class="card hidden">
+      <h1>Blog</h1>
+      <div id="postList"></div>
+      <div id="postDetail" class="hidden">
+        <button id="backToList">← Back to list</button>
+        <h2 id="postTitle"></h2>
+        <div id="postBody"></div>
+        <h3>Comments</h3>
+        <div id="comments"></div>
+        <form id="commentForm">
+          <input name="author" placeholder="Your name" required />
+          <textarea name="text" placeholder="Your comment" required></textarea>
+          <button type="submit">Post Comment</button>
+        </form>
+      </div>
+    </div>
   </div>
 
-  <!-- Main logic: Firebase + Game + Gallery -->
-  <script type="module" src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>
