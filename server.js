@@ -78,7 +78,7 @@ app.get('/api/click-count', (req, res) => {
 });
 
 // Serve index.html for any path that doesn't match /api or /uploads or static files
-app.get('/*', (req, res) => {
+app.use((req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
   });
 
