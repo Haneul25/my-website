@@ -1,8 +1,8 @@
-import express from 'express';
-import multer from 'multer';
-import fs from 'fs';
-import path from 'path';
-import cors from 'cors';
+const express = require('express');
+const multer  = require('multer');
+const fs      = require('fs');
+const path    = require('path');
+const cors    = require('cors');
 
 const app = express();
 const PORT = process.env.PORT || 4000;
