@@ -1,0 +1,10 @@
+{
+    "version": 2,
+    "rewrites": [
+      {
+        "source": "/api/:path*",
+        "destination": "https://api.kang-gang.com/api/:path*"
+      }
+    ]
+  }
+  
