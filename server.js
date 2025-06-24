@@ -1,95 +1,99 @@
+// server.js
 const express = require('express');
 const multer  = require('multer');
+const cors    = require('cors');
 const fs      = require('fs');
 const path    = require('path');
-const cors    = require('cors');
 
-const app = express();
+const app  = express();
 const PORT = process.env.PORT || 4000;
 
-// Enable CORS and JSON body parsing
+// ─── 1) MIDDLEWARE ────────────────────────────────────────────────────────────
+// Enable CORS so your frontend can call the API
 app.use(cors());
+
+// Parse JSON bodies (for future blog/posts endpoints, etc.)
 app.use(express.json());
 
-// Serve uploads folder and frontend static
+// ─── 2) STATIC FILES ──────────────────────────────────────────────────────────
+// Serve uploaded files under /uploads
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Serve your client (index.html, script.js, styles.css) from /public
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Multer: store files in ./uploads with unique names
+// ─── 3) MULTER SETUP ──────────────────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename: (req, file, cb) => cb(null, Date.now() + '_' + file.originalname)
+  filename:    (req, file, cb) => {
+    // prefix timestamp to avoid name collisions
+    cb(null, Date.now() + '_' + file.originalname);
+  }
 });
 const upload = multer({ storage });
 
-// JSON file helpers
-function readJSON(file) {
-  try { return JSON.parse(fs.readFileSync(file)); }
-  catch { return []; }
+// ─── 4) GALLERY API ───────────────────────────────────────────────────────────
+const PHOTOS_META = path.join(__dirname, 'data', 'photos.json');
+
+function readPhotos() {
+  try {
+    return JSON.parse(fs.readFileSync(PHOTOS_META));
+  } catch {
+    return [];
+  }
 }
-function writeJSON(file, data) {
-  fs.writeFileSync(file, JSON.stringify(data, null, 2));
+function writePhotos(arr) {
+  fs.writeFileSync(PHOTOS_META, JSON.stringify(arr, null, 2));
 }
 
-// --- Gallery API ---
-const PHOTOS = path.join(__dirname, 'data', 'photos.json');
-
+// GET all photos metadata
 app.get('/api/photos', (req, res) => {
-  res.json(readJSON(PHOTOS));
+  res.json(readPhotos());
 });
 
+// POST a new photo under form field “file”
 app.post('/api/photos', upload.single('file'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
-  const photos = readJSON(PHOTOS);
+  if (!req.file) {
+    return res.status(400).json({ error: 'No file uploaded.' });
+  }
+
+  const photos = readPhotos();
   const record = {
     url: `/uploads/${req.file.filename}`,
     filename: req.file.filename,
     originalName: req.file.originalname,
     uploadedAt: Date.now()
   };
+
   photos.unshift(record);
-  writeJSON(PHOTOS, photos);
+  writePhotos(photos);
+
   res.json(record);
 });
 
-// --- Blog & Comments API ---
-const POSTS    = path.join(__dirname, 'data', 'posts.json');
-const COMMENTS = path.join(__dirname, 'data', 'comments.json');
+// ─── 5) CLICK COUNTER API (optional) ───────────────────────────────────────────
+let clickCount = 0;
 
-// Posts CRUD
-app.get('/api/posts', (req, res) => res.json(readJSON(POSTS)));
-app.post('/api/posts', (req, res) => {
-  const { title, body } = req.body;
-  const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
-  const posts = readJSON(POSTS);
-  const newPost = { id: Date.now(), slug, title, body, createdAt: Date.now() };
-  posts.unshift(newPost);
-  writeJSON(POSTS, posts);
-  res.json(newPost);
-});
-app.get('/api/posts/:slug', (req, res) => {
-  const post = readJSON(POSTS).find(p => p.slug === req.params.slug);
-  if (!post) return res.status(404).json({ error: 'Not found' });
-  res.json(post);
+// Increment
+app.post('/api/click', (req, res) => {
+  clickCount++;
+  console.log(`🔘 Button clicked ${clickCount} time(s)`);
+  res.json({ count: clickCount });
 });
 
-// Comments CRUD
-app.get('/api/posts/:slug/comments', (req, res) => {
-  const comments = readJSON(COMMENTS).filter(c => c.postId === req.params.slug);
-  res.json(comments);
-});
-app.post('/api/posts/:slug/comments', (req, res) => {
-  const { author, text } = req.body;
-  const comments = readJSON(COMMENTS);
-  const newC = { id: Date.now(), postId: req.params.slug, author, text, createdAt: Date.now() };
-  comments.push(newC);
-  writeJSON(COMMENTS, comments);
-  res.json(newC);
+// Fetch current
+app.get('/api/click-count', (req, res) => {
+  res.json({ count: clickCount });
 });
 
-// SPA fallback
-app.use((req, res) => {
+// ─── 6) SPA FALLBACK ───────────────────────────────────────────────────────────
+// For any route not matched above, serve index.html to let your
+// client-side router (tabs, blog, etc.) take over.
+app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-app.listen(PORT, () => console.log(`🚀 Server listening at http://localhost:${PORT}`));
+// ─── START THE SERVER ─────────────────────────────────────────────────────────
+app.listen(PORT, () =>
+  console.log(`🚀 Server listening at http://localhost:${PORT}`)
+);
