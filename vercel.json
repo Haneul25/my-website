@@ -3,11 +3,11 @@
     "rewrites": [
       {
         "source": "/api/:path*",
-        "destination": "https://api.kang-gang.com/api/:path*"
+        "destination": "http://api.kang-gang.com/api/:path*"
       },
       {
         "source": "/uploads/:file*",
-        "destination": "https://api.kang-gang.com/uploads/:file*"
+        "destination": "http://api.kang-gang.com/uploads/:file*"
       }
     ]
   }
