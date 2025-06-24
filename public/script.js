@@ -56,7 +56,6 @@ function resetGame() {
   clearInterval(gameLoop);
   gameLoop = setInterval(draw, 100);
 }
-
 function draw() {
   if (vel.x || vel.y) {
     const head = { x: snake[0].x + vel.x, y: snake[0].y + vel.y };
@@ -79,7 +78,6 @@ function draw() {
   ctx.fillStyle = 'red';
   ctx.fillRect(food.x*gridSize, food.y*gridSize, gridSize-2, gridSize-2);
 }
-
 function placeFood() {
   food = {
     x: Math.floor(Math.random()*tileCount),
@@ -87,13 +85,11 @@ function placeFood() {
   };
   if (snake.some(s => s.x === food.x && s.y === food.y)) placeFood();
 }
-
 function endGame() {
   clearInterval(gameLoop);
   gameOverEl.classList.remove('hidden');
   vel = { x:0, y:0 };
 }
-
 resetGame();
 
 // — PHOTO GALLERY —
@@ -127,6 +123,8 @@ async function loadGallery() {
 }
 
 // — BLOG & COMMENTS —
+// grab the new-post form
+const newPostForm  = document.getElementById('newPostForm');
 const postListEl   = document.getElementById('postList');
 const postDetailEl = document.getElementById('postDetail');
 const backBtn      = document.getElementById('backToList');
@@ -135,11 +133,28 @@ const bodyEl       = document.getElementById('postBody');
 const commentsEl   = document.getElementById('comments');
 const commentForm  = document.getElementById('commentForm');
 
+// go back to list
 backBtn.addEventListener('click', () => {
   postDetailEl.classList.add('hidden');
   postListEl.classList.remove('hidden');
 });
 
+// handler to publish a new post
+newPostForm.addEventListener('submit', async e => {
+  e.preventDefault();
+  const title = newPostForm.title.value;
+  const body  = newPostForm.body.value;
+  const res = await fetch('/api/posts', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, body })
+  });
+  if (!res.ok) return alert('Failed to create post');
+  newPostForm.reset();
+  loadPostList();
+});
+
+// fetch & render post list
 async function loadPostList() {
   postDetailEl.classList.add('hidden');
   postListEl.classList.remove('hidden');
@@ -154,6 +169,7 @@ async function loadPostList() {
   });
 }
 
+// fetch & render a single post + its comments
 async function loadPost(slug) {
   const [pr, cr] = await Promise.all([
     fetch(`/api/posts/${slug}`),
@@ -168,6 +184,7 @@ async function loadPost(slug) {
     `<p><strong>${c.author}</strong>: ${c.text}</p>`
   ).join('');
 
+  // new comment handler
   commentForm.onsubmit = async e => {
     e.preventDefault();
     const author = commentForm.author.value;

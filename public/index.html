@@ -56,6 +56,13 @@
     <!-- Blog Section -->
     <div id="blog" class="card hidden">
       <h1>Blog</h1>
+      <!-- New Post Form -->
+      <form id="newPostForm" class="card">
+        <h3>Create a New Post</h3>
+        <input name="title" placeholder="Title" required />
+        <textarea name="body" placeholder="Write your post here…" required></textarea>
+      <button type="submit">Publish</button>
+      </form>
       <div id="postList"></div>
       <div id="postDetail" class="hidden">
         <button id="backToList">← Back to list</button>
