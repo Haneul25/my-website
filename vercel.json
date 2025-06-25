@@ -1,17 +1,13 @@
 {
-    "version": 2,
-    "rewrites": [
-      {
-        "source": "/api/:path*",
-        "destination": "https://api.kang-gang.com/api/:path*"
-      },
-      {
-        "source": "/uploads/:file*",
-        "destination": "https://api.kang-gang.com/uploads/:file*"
-      },
-      {
-        "source": "/:path*",
-        "destination": "/"
-      }
-    ]
-  }
+  "version": 2,
+  "rewrites": [
+    {
+      "source": "/api/:path*",
+      "destination": "https://api.kang-gang.com/api/:path*"
+    },
+    {
+      "source": "/uploads/:file*",
+      "destination": "https://api.kang-gang.com/uploads/:file*"
+    }
+  ]
+}
