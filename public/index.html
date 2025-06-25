@@ -1,110 +1,84 @@
-// server.js
-const express = require('express');
-const multer  = require('multer');
-const cors    = require('cors');
-const fs      = require('fs');
-const path    = require('path');
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Personal Website</title>
 
-const app  = express();
-const PORT = process.env.PORT || 4000;
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
 
-// --- Ensure folders & JSON files exist ---
-const DATA_DIR    = path.join(__dirname, 'data');
-const UPLOADS_DIR = path.join(__dirname, 'uploads');
-if (!fs.existsSync(DATA_DIR))    fs.mkdirSync(DATA_DIR);
-if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
+  <!-- Your custom styles -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="sidebar">
+    <ul>
+      <li id="tab-home" class="active">Home</li>
+      <li id="tab-game">Game</li>
+      <li id="tab-gallery">Gallery</li>
+      <li id="tab-blog">Blog</li>
+    </ul>
+  </div>
 
-// initialize JSON stores if missing
-;['posts.json','comments.json','photos.json'].forEach(fn => {
-  const file = path.join(DATA_DIR, fn);
-  if (!fs.existsSync(file)) fs.writeFileSync(file, '[]');
-});
+  <div id="content">
+    <!-- Home -->
+    <div id="home" class="card">
+      <h1>Welcome to My Personal Website</h1>
+      <section>
+        <h2>About Me</h2>
+        <p>Hi! I'm Evan Kang.</p>
+      </section>
+      <section>
+        <h2>Contact</h2>
+        <p>Email: evank1226@gmail.com</p>
+      </section>
+    </div>
 
-// --- Middlewares ---
-app.use(cors());
-app.use(express.json());                       // for JSON bodies
-app.use('/uploads', express.static(UPLOADS_DIR));
-app.use(express.static(path.join(__dirname, 'public')));
+    <!-- Snake Game -->
+    <div id="game" class="card hidden">
+      <h1>Snake Game</h1>
+      <canvas id="gameCanvas" width="400" height="400"></canvas>
+      <p id="score">Score: 0</p>
+      <p id="gameOver" class="hidden">Game Over! Press an arrow key to restart.</p>
+    </div>
 
-// --- Multer setup for uploads ---
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
-  filename:    (req, file, cb) =>
-    cb(null, `${Date.now()}_${file.originalname}`)
-});
-const upload = multer({ storage });
+    <!-- Photo Gallery -->
+    <div id="gallery" class="card hidden">
+      <h1>Photo Gallery</h1>
+      <input type="file" id="fileInput" accept="image/*" />
+      <button id="uploadBtn">Upload Photo</button>
+      <div id="galleryContainer"></div>
+    </div>
 
-// --- JSON file helpers ---
-function readJSON(fn) {
-  return JSON.parse(fs.readFileSync(path.join(DATA_DIR, fn)));
-}
-function writeJSON(fn, data) {
-  fs.writeFileSync(path.join(DATA_DIR, fn), JSON.stringify(data, null, 2));
-}
+    <!-- Blog Section -->
+    <div id="blog" class="card hidden">
+      <h1>Blog</h1>
+      <!-- New Post Form -->
+      <form id="newPostForm" class="card">
+        <h3>Create a New Post</h3>
+        <input name="title" placeholder="Title" required />
+        <textarea name="body" placeholder="Write your post here…" required></textarea>
+      <button type="submit">Publish</button>
+      </form>
+      <div id="postList"></div>
+      <div id="postDetail" class="hidden">
+        <button id="backToList">← Back to list</button>
+        <h2 id="postTitle"></h2>
+        <div id="postBody"></div>
+        <h3>Comments</h3>
+        <div id="comments"></div>
+        <form id="commentForm">
+          <input name="author" placeholder="Your name" required />
+          <textarea name="text" placeholder="Your comment" required></textarea>
+          <button type="submit">Post Comment</button>
+        </form>
+      </div>
+    </div>
+  </div>
 
-// ————— Gallery API —————
-app.get('/api/photos', (req, res) => {
-  res.json(readJSON('photos.json'));
-});
-app.post('/api/photos', upload.single('file'), (req, res) => {
-  if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
-  const photos = readJSON('photos.json');
-  const record = {
-    url:         `/uploads/${req.file.filename}`,
-    filename:    req.file.filename,
-    originalName:req.file.originalname,
-    uploadedAt:  Date.now()
-  };
-  photos.unshift(record);
-  writeJSON('photos.json', photos);
-  res.json(record);
-});
-
-// ————— Blog API —————
-app.get('/api/posts', (req, res) => {
-  res.json(readJSON('posts.json'));
-});
-app.post('/api/posts', (req, res) => {
-  const { title, body } = req.body;
-  if (!title || !body) return res.status(400).json({ error: 'Missing title or body.' });
-  const slug = title
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/(^-|-$)/g, '');
-  const posts = readJSON('posts.json');
-  const newPost = { id:Date.now(), slug, title, body, createdAt:Date.now() };
-  posts.unshift(newPost);
-  writeJSON('posts.json', posts);
-  res.json(newPost);
-});
-app.get('/api/posts/:slug', (req, res) => {
-  const post = readJSON('posts.json').find(p => p.slug === req.params.slug);
-  if (!post) return res.status(404).json({ error: 'Post not found.' });
-  res.json(post);
-});
-
-// ————— Comments API —————
-app.get('/api/posts/:slug/comments', (req, res) => {
-  const all = readJSON('comments.json');
-  res.json(all.filter(c => c.postId === req.params.slug));
-});
-app.post('/api/posts/:slug/comments', (req, res) => {
-  const { author, text } = req.body;
-  if (!author || !text) return res.status(400).json({ error: 'Missing author or text.' });
-  const comments = readJSON('comments.json');
-  const newC = { id:Date.now(), postId:req.params.slug, author, text, createdAt:Date.now() };
-  comments.push(newC);
-  writeJSON('comments.json', comments);
-  res.json(newC);
-});
-
-// ————— SPA fallback —————
-// any non-API/uploads request should serve your index.html
-app.use((req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-// ————— Start server —————
-app.listen(PORT, () => {
-  console.log(`🚀 Listening at http://localhost:${PORT}`);
-});
+  <script src="script.js"></script>
+</body>
+</html>
