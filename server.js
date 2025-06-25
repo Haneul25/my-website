@@ -8,92 +8,103 @@ const path    = require('path');
 const app  = express();
 const PORT = process.env.PORT || 4000;
 
-// ─── 1) MIDDLEWARE ────────────────────────────────────────────────────────────
-// Enable CORS so your frontend can call the API
+// --- Ensure folders & JSON files exist ---
+const DATA_DIR    = path.join(__dirname, 'data');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
+if (!fs.existsSync(DATA_DIR))    fs.mkdirSync(DATA_DIR);
+if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
+
+// initialize JSON stores if missing
+;['posts.json','comments.json','photos.json'].forEach(fn => {
+  const file = path.join(DATA_DIR, fn);
+  if (!fs.existsSync(file)) fs.writeFileSync(file, '[]');
+});
+
+// --- Middlewares ---
 app.use(cors());
-
-// Parse JSON bodies (for future blog/posts endpoints, etc.)
-app.use(express.json());
-
-// ─── 2) STATIC FILES ──────────────────────────────────────────────────────────
-// Serve uploaded files under /uploads
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Serve your client (index.html, script.js, styles.css) from /public
+app.use(express.json());                       // for JSON bodies
+app.use('/uploads', express.static(UPLOADS_DIR));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ─── 3) MULTER SETUP ──────────────────────────────────────────────────────────
+// --- Multer setup for uploads ---
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, 'uploads/'),
-  filename:    (req, file, cb) => {
-    // prefix timestamp to avoid name collisions
-    cb(null, Date.now() + '_' + file.originalname);
-  }
+  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+  filename:    (req, file, cb) =>
+    cb(null, `${Date.now()}_${file.originalname}`)
 });
 const upload = multer({ storage });
 
-// ─── 4) GALLERY API ───────────────────────────────────────────────────────────
-const PHOTOS_META = path.join(__dirname, 'data', 'photos.json');
-
-function readPhotos() {
-  try {
-    return JSON.parse(fs.readFileSync(PHOTOS_META));
-  } catch {
-    return [];
-  }
+// --- JSON file helpers ---
+function readJSON(fn) {
+  return JSON.parse(fs.readFileSync(path.join(DATA_DIR, fn)));
 }
-function writePhotos(arr) {
-  fs.writeFileSync(PHOTOS_META, JSON.stringify(arr, null, 2));
+function writeJSON(fn, data) {
+  fs.writeFileSync(path.join(DATA_DIR, fn), JSON.stringify(data, null, 2));
 }
 
-// GET all photos metadata
+// ————— Gallery API —————
 app.get('/api/photos', (req, res) => {
-  res.json(readPhotos());
+  res.json(readJSON('photos.json'));
 });
-
-// POST a new photo under form field “file”
 app.post('/api/photos', upload.single('file'), (req, res) => {
-  if (!req.file) {
-    return res.status(400).json({ error: 'No file uploaded.' });
-  }
-
-  const photos = readPhotos();
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded.' });
+  const photos = readJSON('photos.json');
   const record = {
-    url: `/uploads/${req.file.filename}`,
-    filename: req.file.filename,
-    originalName: req.file.originalname,
-    uploadedAt: Date.now()
+    url:         `/uploads/${req.file.filename}`,
+    filename:    req.file.filename,
+    originalName:req.file.originalname,
+    uploadedAt:  Date.now()
   };
-
   photos.unshift(record);
-  writePhotos(photos);
-
+  writeJSON('photos.json', photos);
   res.json(record);
 });
 
-// ─── 5) CLICK COUNTER API (optional) ───────────────────────────────────────────
-let clickCount = 0;
-
-// Increment
-app.post('/api/click', (req, res) => {
-  clickCount++;
-  console.log(`🔘 Button clicked ${clickCount} time(s)`);
-  res.json({ count: clickCount });
+// ————— Blog API —————
+app.get('/api/posts', (req, res) => {
+  res.json(readJSON('posts.json'));
+});
+app.post('/api/posts', (req, res) => {
+  const { title, body } = req.body;
+  if (!title || !body) return res.status(400).json({ error: 'Missing title or body.' });
+  const slug = title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+  const posts = readJSON('posts.json');
+  const newPost = { id:Date.now(), slug, title, body, createdAt:Date.now() };
+  posts.unshift(newPost);
+  writeJSON('posts.json', posts);
+  res.json(newPost);
+});
+app.get('/api/posts/:slug', (req, res) => {
+  const post = readJSON('posts.json').find(p => p.slug === req.params.slug);
+  if (!post) return res.status(404).json({ error: 'Post not found.' });
+  res.json(post);
 });
 
-// Fetch current
-app.get('/api/click-count', (req, res) => {
-  res.json({ count: clickCount });
+// ————— Comments API —————
+app.get('/api/posts/:slug/comments', (req, res) => {
+  const all = readJSON('comments.json');
+  res.json(all.filter(c => c.postId === req.params.slug));
+});
+app.post('/api/posts/:slug/comments', (req, res) => {
+  const { author, text } = req.body;
+  if (!author || !text) return res.status(400).json({ error: 'Missing author or text.' });
+  const comments = readJSON('comments.json');
+  const newC = { id:Date.now(), postId:req.params.slug, author, text, createdAt:Date.now() };
+  comments.push(newC);
+  writeJSON('comments.json', comments);
+  res.json(newC);
 });
 
-// ─── 6) SPA FALLBACK ───────────────────────────────────────────────────────────
-// For any route not matched above, serve index.html to let your
-// client-side router (tabs, blog, etc.) take over.
-app.get('*', (req, res) => {
+// ————— SPA fallback —————
+// any non-API/uploads request should serve your index.html
+app.use((req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// ─── START THE SERVER ─────────────────────────────────────────────────────────
-app.listen(PORT, () =>
-  console.log(`🚀 Server listening at http://localhost:${PORT}`)
-);
+// ————— Start server —————
+app.listen(PORT, () => {
+  console.log(`🚀 Listening at http://localhost:${PORT}`);
+});
