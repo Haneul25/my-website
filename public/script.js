@@ -1,30 +1,53 @@
-// — TAB NAVIGATION —
-const tabs = {
-  home:    document.getElementById('home'),
-  game:    document.getElementById('game'),
-  gallery: document.getElementById('gallery'),
-  blog:    document.getElementById('blog'),
-};
+// — TAB NAVIGATION & CLIENT-SIDE ROUTER —
+const tabs    = ['home','game','gallery','blog'];
 const tabBtns = {
   home:    document.getElementById('tab-home'),
   game:    document.getElementById('tab-game'),
   gallery: document.getElementById('tab-gallery'),
   blog:    document.getElementById('tab-blog'),
 };
+const panes   = {
+  home:    document.getElementById('home'),
+  game:    document.getElementById('game'),
+  gallery: document.getElementById('gallery'),
+  blog:    document.getElementById('blog'),
+};
 
-Object.keys(tabBtns).forEach(key => {
-  tabBtns[key].addEventListener('click', () => switchTab(key));
-});
-
-function switchTab(tab) {
-  Object.keys(tabs).forEach(k => {
-    tabs[k].classList.toggle('hidden', k !== tab);
-    tabBtns[k].classList.toggle('active', k === tab);
+function switchTab(tab, push=true) {
+  if (!tabs.includes(tab)) tab = 'home';
+  // 1) activate button + pane
+  tabs.forEach(t => {
+    tabBtns[t].classList.toggle('active', t === tab);
+    panes[t].classList.toggle('hidden', t !== tab);
   });
+  // 2) push URL (unless coming from popstate)
+  if (push) {
+    const url = tab === 'home' ? '/' : `/${tab}`;
+    history.pushState(null, '', url);
+  }
+  // 3) init dynamic content
   if (tab === 'game')    resetGame();
   if (tab === 'gallery') loadGallery();
   if (tab === 'blog')    loadPostList();
 }
+
+// wire up clicks
+tabs.forEach(t => {
+  tabBtns[t].addEventListener('click', () => switchTab(t));
+});
+
+// handle back/forward buttons
+window.addEventListener('popstate', () => {
+  const path = window.location.pathname.replace(/^\/+/, '') || 'home';
+  switchTab(path, false);
+});
+
+// on first load, pick the right tab
+window.addEventListener('DOMContentLoaded', () => {
+  const initial = window.location.pathname.replace(/^\/+/, '') || 'home';
+  switchTab(initial, false);
+});
+
 
 // — SNAKE GAME (unchanged) —
 const canvas     = document.getElementById('gameCanvas');
@@ -40,9 +63,8 @@ window.addEventListener('keydown', e => {
   switch (e.key) {
     case 'ArrowUp':    if (vel.y !== 1) vel = { x:0, y:-1 }; break;
     case 'ArrowDown':  if (vel.y !== -1) vel = { x:0, y:1 }; break;
-    case 'ArrowLeft':  if (vel.x !== 1) vel = { x:-1,y:0 }; break;
-    case 'ArrowRight': if (vel.x !== -1) vel = { x:1, y:0 }; break;
-    default: return;
+    case 'ArrowLeft':  if (vel.x !== 1) vel = { x:-1, y:0 }; break;
+    case 'ArrowRight': if (vel.x !== -1) vel = { x:1,  y:0 }; break;
   }
 });
 
@@ -56,6 +78,7 @@ function resetGame() {
   clearInterval(gameLoop);
   gameLoop = setInterval(draw, 100);
 }
+
 function draw() {
   if (vel.x || vel.y) {
     const head = { x: snake[0].x + vel.x, y: snake[0].y + vel.y };
@@ -65,6 +88,7 @@ function draw() {
       head.y < 0 || head.y >= tileCount ||
       snake.slice(1).some(s => s.x === head.x && s.y === head.y)
     ) return endGame();
+
     if (head.x === food.x && head.y === food.y) {
       score++;
       scoreEl.textContent = 'Score: ' + score;
@@ -78,21 +102,25 @@ function draw() {
   ctx.fillStyle = 'red';
   ctx.fillRect(food.x*gridSize, food.y*gridSize, gridSize-2, gridSize-2);
 }
+
 function placeFood() {
   food = {
-    x: Math.floor(Math.random()*tileCount),
-    y: Math.floor(Math.random()*tileCount)
+    x: Math.floor(Math.random() * tileCount),
+    y: Math.floor(Math.random() * tileCount)
   };
   if (snake.some(s => s.x === food.x && s.y === food.y)) placeFood();
 }
+
 function endGame() {
   clearInterval(gameLoop);
   gameOverEl.classList.remove('hidden');
   vel = { x:0, y:0 };
 }
+
 resetGame();
 
-// — PHOTO GALLERY —
+
+// — PHOTO GALLERY (unchanged) —
 const fileInput        = document.getElementById('fileInput');
 const uploadBtn        = document.getElementById('uploadBtn');
 const galleryContainer = document.getElementById('galleryContainer');
@@ -100,20 +128,15 @@ const galleryContainer = document.getElementById('galleryContainer');
 uploadBtn.addEventListener('click', async () => {
   const file = fileInput.files[0];
   if (!file) return alert('Select an image!');
-  const form = new FormData();
-  form.append('file', file);
-
-  const res = await fetch('/api/photos', {
-    method: 'POST',
-    body: form
-  });
+  const form = new FormData(); form.append('file', file);
+  const res  = await fetch('/api/photos', { method:'POST', body:form });
   if (!res.ok) return alert('Upload failed');
   loadGallery();
 });
 
 async function loadGallery() {
   galleryContainer.innerHTML = '';
-  const res = await fetch('/api/photos');
+  const res    = await fetch('/api/photos');
   const photos = await res.json();
   photos.forEach(p => {
     const img = document.createElement('img');
@@ -122,8 +145,8 @@ async function loadGallery() {
   });
 }
 
-// — BLOG & COMMENTS —
-// grab the new-post form
+
+// — BLOG & COMMENTS (unchanged) —
 const newPostForm  = document.getElementById('newPostForm');
 const postListEl   = document.getElementById('postList');
 const postDetailEl = document.getElementById('postDetail');
@@ -133,20 +156,18 @@ const bodyEl       = document.getElementById('postBody');
 const commentsEl   = document.getElementById('comments');
 const commentForm  = document.getElementById('commentForm');
 
-// go back to list
 backBtn.addEventListener('click', () => {
   postDetailEl.classList.add('hidden');
   postListEl.classList.remove('hidden');
 });
 
-// handler to publish a new post
 newPostForm.addEventListener('submit', async e => {
   e.preventDefault();
   const title = newPostForm.title.value;
   const body  = newPostForm.body.value;
-  const res = await fetch('/api/posts', {
+  const res   = await fetch('/api/posts', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers:{ 'Content-Type':'application/json' },
     body: JSON.stringify({ title, body })
   });
   if (!res.ok) return alert('Failed to create post');
@@ -154,12 +175,11 @@ newPostForm.addEventListener('submit', async e => {
   loadPostList();
 });
 
-// fetch & render post list
 async function loadPostList() {
   postDetailEl.classList.add('hidden');
   postListEl.classList.remove('hidden');
   postListEl.innerHTML = '';
-  const res = await fetch('/api/posts');
+  const res   = await fetch('/api/posts');
   const posts = await res.json();
   posts.forEach(p => {
     const btn = document.createElement('button');
@@ -169,29 +189,26 @@ async function loadPostList() {
   });
 }
 
-// fetch & render a single post + its comments
 async function loadPost(slug) {
   const [pr, cr] = await Promise.all([
     fetch(`/api/posts/${slug}`),
     fetch(`/api/posts/${slug}/comments`)
   ]);
-  const post = await pr.json();
-  const comm = await cr.json();
+  const post = await pr.json(), comm = await cr.json();
 
-  titleEl.textContent = post.title;
-  bodyEl.innerHTML = post.body;
+  titleEl.textContent  = post.title;
+  bodyEl.innerHTML     = post.body;
   commentsEl.innerHTML = comm.map(c =>
     `<p><strong>${c.author}</strong>: ${c.text}</p>`
   ).join('');
 
-  // new comment handler
-  commentForm.onsubmit = async e => {
-    e.preventDefault();
+  commentForm.onsubmit = async ev => {
+    ev.preventDefault();
     const author = commentForm.author.value;
     const text   = commentForm.text.value;
-    const resp = await fetch(`/api/posts/${slug}/comments`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+    const resp   = await fetch(`/api/posts/${slug}/comments`, {
+      method:'POST',
+      headers:{ 'Content-Type':'application/json' },
       body: JSON.stringify({ author, text })
     });
     const newC = await resp.json();
