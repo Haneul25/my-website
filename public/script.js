@@ -1,55 +1,49 @@
-// — TAB NAVIGATION & CLIENT-SIDE ROUTER —
-const tabs    = ['home','game','gallery','blog'];
-const tabBtns = {
-  home:    document.getElementById('tab-home'),
-  game:    document.getElementById('tab-game'),
-  gallery: document.getElementById('tab-gallery'),
-  blog:    document.getElementById('tab-blog'),
-};
-const panes   = {
-  home:    document.getElementById('home'),
-  game:    document.getElementById('game'),
-  gallery: document.getElementById('gallery'),
-  blog:    document.getElementById('blog'),
-};
+// — TAB NAVIGATION & ROUTING — 
+const TABS    = ['home','game','gallery','blog'];
+const tabBtns = {};
+const panes   = {};
+
+TABS.forEach(t => {
+  tabBtns[t] = document.querySelector(`[data-tab="${t}"]`);
+  panes[t]   = document.getElementById(t);
+  tabBtns[t].addEventListener('click', () => switchTab(t));
+});
 
 function switchTab(tab, push=true) {
-  if (!tabs.includes(tab)) tab = 'home';
-  // 1) activate button + pane
-  tabs.forEach(t => {
+  if (!TABS.includes(tab)) tab = 'home';
+
+  // activate/deactivate buttons & show/hide panes
+  TABS.forEach(t => {
     tabBtns[t].classList.toggle('active', t === tab);
     panes[t].classList.toggle('hidden', t !== tab);
   });
-  // 2) push URL (unless coming from popstate)
+
+  // update URL
   if (push) {
     const url = tab === 'home' ? '/' : `/${tab}`;
     history.pushState(null, '', url);
   }
-  // 3) init dynamic content
+
+  // initialize dynamic content if needed
   if (tab === 'game')    resetGame();
   if (tab === 'gallery') loadGallery();
   if (tab === 'blog')    loadPostList();
 }
 
-// wire up clicks
-tabs.forEach(t => {
-  tabBtns[t].addEventListener('click', () => switchTab(t));
-});
-
-// handle back/forward buttons
+// support back/forward buttons
 window.addEventListener('popstate', () => {
   const path = window.location.pathname.replace(/^\/+/, '') || 'home';
   switchTab(path, false);
 });
 
-// on first load, pick the right tab
+// on first load, show the right tab
 window.addEventListener('DOMContentLoaded', () => {
-  const initial = window.location.pathname.replace(/^\/+/, '') || 'home';
-  switchTab(initial, false);
+  const init = window.location.pathname.replace(/^\/+/, '') || 'home';
+  switchTab(init, false);
 });
 
 
-// — SNAKE GAME (unchanged) —
+// — SNAKE GAME — (exactly as before)
 const canvas     = document.getElementById('gameCanvas');
 const ctx        = canvas.getContext('2d');
 const scoreEl    = document.getElementById('score');
@@ -60,17 +54,17 @@ let snake, vel, food, score, gameLoop;
 
 window.addEventListener('keydown', e => {
   if (!gameOverEl.classList.contains('hidden')) resetGame();
-  switch (e.key) {
-    case 'ArrowUp':    if (vel.y !== 1) vel = { x:0, y:-1 }; break;
-    case 'ArrowDown':  if (vel.y !== -1) vel = { x:0, y:1 }; break;
-    case 'ArrowLeft':  if (vel.x !== 1) vel = { x:-1, y:0 }; break;
-    case 'ArrowRight': if (vel.x !== -1) vel = { x:1,  y:0 }; break;
+  if (e.key.startsWith('Arrow')) {
+    const dir = { ArrowUp:[0,-1], ArrowDown:[0,1], ArrowLeft:[-1,0], ArrowRight:[1,0] }[e.key];
+    if (dir && !(vel.x === -dir[0] && vel.y === -dir[1])) {
+      vel = { x: dir[0], y: dir[1] };
+    }
   }
 });
 
 function resetGame() {
   snake = [{ x:10, y:10 }];
-  vel   = { x:0,  y:0  };
+  vel   = { x:0, y:0 };
   score = 0;
   scoreEl.textContent = 'Score: 0';
   gameOverEl.classList.add('hidden');
@@ -95,19 +89,16 @@ function draw() {
       placeFood();
     } else snake.pop();
   }
-  ctx.fillStyle = 'black';
-  ctx.fillRect(0,0,canvas.width,canvas.height);
-  ctx.fillStyle = 'lime';
-  snake.forEach(s => ctx.fillRect(s.x*gridSize, s.y*gridSize, gridSize-2, gridSize-2));
-  ctx.fillStyle = 'red';
-  ctx.fillRect(food.x*gridSize, food.y*gridSize, gridSize-2, gridSize-2);
+
+  ctx.fillStyle = 'black'; ctx.fillRect(0, 0, canvas.width, canvas.height);
+  ctx.fillStyle = 'lime';  snake.forEach(s =>
+    ctx.fillRect(s.x*gridSize, s.y*gridSize, gridSize-2, gridSize-2)
+  );
+  ctx.fillStyle = 'red';   ctx.fillRect(food.x*gridSize, food.y*gridSize, gridSize-2, gridSize-2);
 }
 
 function placeFood() {
-  food = {
-    x: Math.floor(Math.random() * tileCount),
-    y: Math.floor(Math.random() * tileCount)
-  };
+  food = { x: Math.floor(Math.random()*tileCount), y: Math.floor(Math.random()*tileCount) };
   if (snake.some(s => s.x === food.x && s.y === food.y)) placeFood();
 }
 
@@ -120,7 +111,7 @@ function endGame() {
 resetGame();
 
 
-// — PHOTO GALLERY (unchanged) —
+// — PHOTO GALLERY — (unchanged)
 const fileInput        = document.getElementById('fileInput');
 const uploadBtn        = document.getElementById('uploadBtn');
 const galleryContainer = document.getElementById('galleryContainer');
@@ -129,7 +120,7 @@ uploadBtn.addEventListener('click', async () => {
   const file = fileInput.files[0];
   if (!file) return alert('Select an image!');
   const form = new FormData(); form.append('file', file);
-  const res  = await fetch('/api/photos', { method:'POST', body:form });
+  const res  = await fetch('/api/photos', { method:'POST', body: form });
   if (!res.ok) return alert('Upload failed');
   loadGallery();
 });
@@ -146,7 +137,7 @@ async function loadGallery() {
 }
 
 
-// — BLOG & COMMENTS (unchanged) —
+// — BLOG & COMMENTS — (unchanged)
 const newPostForm  = document.getElementById('newPostForm');
 const postListEl   = document.getElementById('postList');
 const postDetailEl = document.getElementById('postDetail');

@@ -9,96 +9,77 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link
-    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;600&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap"
     rel="stylesheet"
   >
 
-  <!-- Updated styles -->
+  <!-- Your existing styles.css -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <aside id="sidebar">
-    <nav>
-      <ul>
-        <li id="tab-home" class="active">Home</li>
-        <li id="tab-game">Game</li>
-        <li id="tab-gallery">Gallery</li>
-        <li id="tab-blog">Blog</li>
-      </ul>
-    </nav>
-  </aside>
+  <!-- Sidebar / Tab Navigation -->
+  <nav id="sidebar">
+    <ul>
+      <!-- NOTE data-tab attributes here! -->
+      <li data-tab="home"  class="tab-btn active">Home</li>
+      <li data-tab="game"  class="tab-btn">Game</li>
+      <li data-tab="gallery" class="tab-btn">Gallery</li>
+      <li data-tab="blog"  class="tab-btn">Blog</li>
+    </ul>
+  </nav>
 
+  <!-- Content Panes -->
   <main id="content">
-    <!-- Home -->
-    <section id="home" class="panel">
+    <!-- Home (no .hidden → visible by default) -->
+    <section id="home" class="tab-content">
       <h1>Evan Kang</h1>
       <p class="lede">Full-stack tinkerer, minimalist lover, occasional gamer.</p>
       <hr>
       <p>Email: <a href="mailto:evank1226@gmail.com">evank1226@gmail.com</a></p>
     </section>
 
-    <!-- Snake Game -->
-    <section id="game" class="panel hidden">
-      <h2>Snake Game</h2>
+    <!-- Game (hidden by default) -->
+    <section id="game" class="tab-content hidden">
+      <h1>Snake Game</h1>
       <canvas id="gameCanvas" width="400" height="400"></canvas>
       <p id="score">Score: 0</p>
       <p id="gameOver" class="hidden">Game Over – press an arrow key to restart.</p>
     </section>
 
-    <!-- Photo Gallery -->
-    <section id="gallery" class="panel hidden">
-      <h2>Photo Gallery</h2>
-      <div class="upload-controls">
-        <input type="file" id="fileInput" accept="image/*" />
-        <button id="uploadBtn">Upload Photo</button>
-      </div>
-      <div id="galleryContainer" class="masonry"></div>
+    <!-- Gallery -->
+    <section id="gallery" class="tab-content hidden">
+      <h1>Photo Gallery</h1>
+      <input type="file" id="fileInput" accept="image/*" />
+      <button id="uploadBtn">Upload Photo</button>
+      <div id="galleryContainer"></div>
     </section>
 
-    <!-- Blog Section -->
-    <section id="blog" class="panel hidden">
-      <h2>Blog</h2>
-
-      <!-- New Post Form -->
-      <form id="newPostForm" class="card form-card">
-        <label>
-          Title
-          <input name="title" placeholder="Post title" required />
-        </label>
-        <label>
-          Body
-          <textarea name="body" placeholder="Write your post…" required></textarea>
-        </label>
+    <!-- Blog -->
+    <section id="blog" class="tab-content hidden">
+      <h1>Blog</h1>
+      <form id="newPostForm" class="card">
+        <h3>Create a New Post</h3>
+        <input name="title" placeholder="Title" required />
+        <textarea name="body" placeholder="Write your post here…" required></textarea>
         <button type="submit">Publish</button>
       </form>
-
-      <!-- List of Posts -->
-      <div id="postList" class="card post-list"></div>
-
-      <!-- Single Post Detail -->
-      <div id="postDetail" class="card hidden post-detail">
-        <button id="backToList" class="link-button">← Back to posts</button>
-        <h3 id="postTitle"></h3>
-        <article id="postBody"></article>
-        <hr>
-        <h4>Comments</h4>
+      <div id="postList" class="card"></div>
+      <div id="postDetail" class="card hidden">
+        <button id="backToList">← Back to list</button>
+        <h2 id="postTitle"></h2>
+        <div id="postBody"></div>
+        <h3>Comments</h3>
         <div id="comments"></div>
-
-        <form id="commentForm" class="form-card">
-          <label>
-            Name
-            <input name="author" placeholder="Your name" required />
-          </label>
-          <label>
-            Comment
-            <textarea name="text" placeholder="Your comment" required></textarea>
-          </label>
+        <form id="commentForm">
+          <input name="author" placeholder="Your name" required />
+          <textarea name="text" placeholder="Your comment" required></textarea>
           <button type="submit">Post Comment</button>
         </form>
       </div>
     </section>
   </main>
 
+  <!-- This loads our tab & app logic -->
   <script src="script.js"></script>
 </body>
 </html>
