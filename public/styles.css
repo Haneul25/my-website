@@ -210,3 +210,7 @@
     #content { padding: var(--space); }
   }
   
+  .hidden {
+    display: none !important;
+  }
+  
