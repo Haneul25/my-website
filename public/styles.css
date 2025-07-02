@@ -1,10 +1,10 @@
 :root {
   --font-sans: 'Poppins', sans-serif;
-  --primary: #4f46e5;
-  --primary-dark: #3730a3;
-  --accent: #facc15;
-  --bg-light: #f9fafb;
-  --text-dark: #1f2937;
+  --primary:    #4f46e5;
+  --primary-dark:#3730a3;
+  --accent:     #facc15;
+  --bg-light:   #f9fafb;
+  --text-dark:  #1f2937;
   --text-light: #f3f4f6;
 }
 
@@ -37,9 +37,9 @@ body {
 
 /* Content */
 #content {
-  flex:1;
-  padding:2rem;
-  overflow:auto;
+  flex: 1;
+  padding: 2rem;
+  overflow: auto;
 }
 
 /* Common Card */
@@ -47,8 +47,8 @@ body {
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  padding:1.5rem;
-  margin-bottom:1.5rem;
+  padding: 1.5rem;
+  margin-bottom: 1.5rem;
 }
 
 /* Tab Content Fade */
@@ -61,7 +61,9 @@ body {
   opacity: 1;
   transform: translateY(0);
 }
-.hidden { display:none; }
+
+/* Utility */
+.hidden { display: none; }
 
 /* Snake Game */
 #gameCanvas {
@@ -70,26 +72,26 @@ body {
   margin: 1rem auto;
 }
 #score, #gameOver {
-  text-align:center;
+  text-align: center;
   color: var(--primary);
-  font-weight:600;
+  font-weight: 600;
 }
 
 /* Gallery */
 #galleryContainer {
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-top:1rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 1rem;
 }
 #galleryContainer img {
-  width:150px;
-  border-radius:8px;
+  width: 150px;
+  border-radius: 8px;
 }
 
 /* Responsive */
 @media(max-width:600px) {
-  body { flex-direction:column; }
+  body { flex-direction: column; }
   #sidebar { width:100%; display:flex; }
   .tab-btn { flex:1; text-align:center; }
 }
