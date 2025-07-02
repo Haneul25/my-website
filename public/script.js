@@ -18,10 +18,12 @@ PANELS.forEach(name => {
 
 function switchTab(active) {
   PANELS.forEach(name => {
-    // toggle active class on buttons
     tabBtns[name].classList.toggle('active', name === active)
-    // toggle hidden on panels
-    panels[name].classList.toggle('hidden', name !== active)
+    if (name === active) {
+      panels[name].classList.remove('hidden')
+    } else {
+      panels[name].classList.add('hidden')
+    }
   })
 
   // init dynamic content
@@ -29,6 +31,12 @@ function switchTab(active) {
   if (active === 'gallery') loadGallery()
   if (active === 'blog')    loadPostList()
 }
+
+// Ensure only home is visible on load
+PANELS.forEach(name => {
+  if (name !== 'home') panels[name].classList.add('hidden')
+  else panels[name].classList.remove('hidden')
+})
 
 // ——— SNAKE GAME ——— (unchanged) …
 const canvas     = document.getElementById('gameCanvas')
