@@ -4,96 +4,35 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Evan Kang — Personal Site</title>
-
-  <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link
-    href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@300;400;600&display=swap"
-    rel="stylesheet"
-  >
-
-  <!-- your existing styles -->
-  <link rel="stylesheet" href="styles.css">
+  <!-- … your Google-font & styles.css links … -->
 </head>
 <body>
-  <!-- sidebar / tab nav -->
   <aside id="sidebar">
-    <nav>
-      <ul>
-        <li id="tab-home"  class="active">Home</li>
-        <li id="tab-game">Game</li>
-        <li id="tab-gallery">Gallery</li>
-        <li id="tab-blog">Blog</li>
-      </ul>
-    </nav>
+    <nav><ul>
+      <li id="tab-home"    class="active">Home</li>
+      <li id="tab-game">Game</li>
+      <li id="tab-gallery">Gallery</li>
+      <li id="tab-blog">Blog</li>
+      <li id="tab-daily">Daily</li>
+    </ul></nav>
   </aside>
 
-  <!-- main content panels -->
   <main id="content">
-    <!-- Home panel -->
-    <section id="home" class="panel">
-      <h1>Evan Kang</h1>
-      <p class="lede">.</p>
-      <hr>
-      <p>Email: <a href="mailto:evank1226@gmail.com">evank1226@gmail.com</a></p>
-    </section>
+    <!-- … home, game, gallery, blog panels … -->
 
-    <!-- Snake Game -->
-    <section id="game" class="panel hidden">
-      <h2>Snake Game</h2>
-      <canvas id="gameCanvas" width="400" height="400"></canvas>
-      <p id="score">Score: 0</p>
-      <p id="gameOver" class="hidden">Game Over — press an arrow key to restart.</p>
-    </section>
-
-    <!-- Photo Gallery -->
-    <section id="gallery" class="panel hidden">
-      <h2>Photo Gallery</h2>
-      <div class="upload-controls">
-        <input type="file" id="fileInput" accept="image/*" />
-        <button id="uploadBtn">Upload Photo</button>
-      </div>
-      <div id="galleryContainer" class="masonry"></div>
-    </section>
-
-    <!-- Blog -->
-    <section id="blog" class="panel hidden">
-      <h2>Blog</h2>
-      <form id="newPostForm" class="card form-card">
+    <!-- Daily Progress & Tasks -->
+    <section id="daily" class="panel hidden">
+      <h2>Daily Progress</h2>
+      <form id="progressForm" class="card form-card">
         <label>
-          Title
-          <input name="title" placeholder="Post title" required />
+          Today’s Progress
+          <textarea name="entry" placeholder="What did you accomplish today?" required></textarea>
         </label>
-        <label>
-          Body
-          <textarea name="body" placeholder="Write your post…" required></textarea>
-        </label>
-        <button type="submit">Publish</button>
+        <button type="submit">Save</button>
       </form>
 
-      <div id="postList" class="card post-list"></div>
-
-      <div id="postDetail" class="card hidden post-detail">
-        <button id="backToList" class="link-button">← Back to posts</button>
-        <h3 id="postTitle"></h3>
-        <article id="postBody"></article>
-        <hr>
-        <h4>Comments</h4>
-        <div id="comments"></div>
-
-        <form id="commentForm" class="form-card">
-          <label>
-            Name
-            <input name="author" placeholder="Your name" required />
-          </label>
-          <label>
-            Comment
-            <textarea name="text" placeholder="Your comment" required></textarea>
-          </label>
-          <button type="submit">Post Comment</button>
-        </form>
-      </div>
+      <h3>Suggested Tasks for Tomorrow</h3>
+      <ul id="taskList" class="card"></ul>
     </section>
   </main>
 

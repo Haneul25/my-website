@@ -39,7 +39,6 @@ window.addEventListener('keydown', e => {
   }
   if (map[e.key]) {
     const { x, y } = map[e.key]
-    // prevent reverse
     if (!(vel.x === -x && vel.y === -y)) vel = { x, y }
   }
 })
@@ -59,14 +58,11 @@ function draw() {
   if (vel.x || vel.y) {
     const head = { x: snake[0].x + vel.x, y: snake[0].y + vel.y }
     snake.unshift(head)
-
-    // collision?
     if (
       head.x < 0 || head.x >= tileCount ||
       head.y < 0 || head.y >= tileCount ||
       snake.slice(1).some(s => s.x === head.x && s.y === head.y)
     ) return endGame()
-
     if (head.x === food.x && head.y === food.y) {
       score++; scoreEl.textContent = 'Score: '+score
       placeFood()
@@ -74,9 +70,7 @@ function draw() {
       snake.pop()
     }
   }
-
-  // draw
-  ctx.fillStyle = 'black'; ctx.fillRect(0,0,400,400)
+  ctx.fillStyle = 'black'; ctx.fillRect(0,0,canvas.width,canvas.height)
   ctx.fillStyle = 'lime'
   snake.forEach(s => ctx.fillRect(s.x*gridSize, s.y*gridSize, gridSize-2, gridSize-2))
   ctx.fillStyle = 'red'
