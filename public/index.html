@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
   <title>Evan Kang — Personal Site</title>
 
   <!-- Google Fonts -->
@@ -13,11 +13,11 @@
     rel="stylesheet"
   >
 
-  <!-- your existing styles -->
+  <!-- Your styles -->
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <!-- sidebar / tab nav -->
+  <!-- sidebar / tab navigation -->
   <aside id="sidebar">
     <nav>
       <ul>
@@ -35,7 +35,7 @@
     <!-- Home panel -->
     <section id="home" class="panel">
       <h1>Evan Kang</h1>
-      <p class="lede">.</p>
+      <p class="lede">Full-stack tinkerer, minimalist lover, occasional gamer.</p>
       <hr>
       <p>Email: <a href="mailto:evank1226@gmail.com">evank1226@gmail.com</a></p>
     </section>
@@ -82,7 +82,6 @@
         <hr>
         <h4>Comments</h4>
         <div id="comments"></div>
-
         <form id="commentForm" class="form-card">
           <label>
             Name
@@ -96,24 +95,26 @@
         </form>
       </div>
     </section>
+
+    <!-- Daily Progress & Tasks -->
+    <section id="daily" class="panel hidden">
+      <h2>Daily Progress</h2>
+      <form id="progressForm" class="card form-card">
+        <label>
+          Today’s Progress
+          <textarea name="entry" placeholder="What did you accomplish today?" required></textarea>
+        </label>
+        <button type="submit">Save</button>
+      </form>
+
+      <!-- placeholder for the “last task” -->
+      <div id="lastTaskMsg" class="card" style="font-weight:600;color:var(--clr-accent);max-width:600px;margin:1rem auto 0;"></div>
+
+      <h3 style="margin-top:2rem;">Suggested Tasks for Tomorrow</h3>
+      <ul id="taskList" class="card" style="max-width:600px;margin:1rem auto;"></ul>
+    </section>
   </main>
 
-  <!-- Daily Progress & Tasks -->
-  <section id="daily" class="panel hidden">
-    <h2>Daily Progress</h2>
-    <form id="progressForm" class="card form-card">
-      <label>
-        Today's Progress
-        <textarea name="entry" placeholder="What did you accomplish today?" required></textarea>
-      </label>
-      <button type="submit">Save</button>
-    </form>
-
-    <h3>Suggested Tasks for Tomorrow</h3>
-    <ul id="taskList" class="card"></ul>
-  </section>
-</main>
-
-<script src="script.js"></script>
+  <script src="script.js"></script>
 </body>
 </html>

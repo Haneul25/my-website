@@ -1,24 +1,23 @@
 // ——— TAB NAVIGATION ———
-const PANELS = ['home','game','gallery','blog','daily']
+const PANELS = ['home','game','gallery','blog','daily'];
+const tabBtns = {};
+const panels  = {};
 
-// cache the tab buttons + panels
-const tabBtns = {}
-const panels  = {}
 PANELS.forEach(name => {
-  tabBtns[name] = document.getElementById(`tab-${name}`)
-  panels[name]  = document.getElementById(name)
-  tabBtns[name].addEventListener('click', () => switchTab(name))
-})
+  tabBtns[name] = document.getElementById(`tab-${name}`);
+  panels[name]  = document.getElementById(name);
+  tabBtns[name].addEventListener('click', () => switchTab(name));
+});
 
 function switchTab(active) {
   PANELS.forEach(name => {
-    tabBtns[name].classList.toggle('active', name === active)
-    panels[name].classList.toggle('hidden', name !== active)
-  })
-  if (active === 'game')    resetGame()
-  if (active === 'gallery') loadGallery()
-  if (active === 'blog')    loadPostList()
-  if (active === 'daily')   loadTasks()
+    tabBtns[name].classList.toggle('active', name === active);
+    panels[name].classList.toggle('hidden', name !== active);
+  });
+  if (active === 'game')    resetGame();
+  if (active === 'gallery') loadGallery();
+  if (active === 'blog')    loadPostList();
+  if (active === 'daily')   loadTasks();
 }
 
 // ——— SNAKE GAME ———
@@ -195,37 +194,38 @@ async function loadPost(slug) {
   postDetailEl.classList.remove('hidden')
 }
 
-// ——— DAILY TASKS ———
-const progressForm = document.getElementById('progressForm')
-const taskList     = document.getElementById('taskList')
-let lastTaskMsg   = document.createElement('div')
-lastTaskMsg.style.margin = '1rem 0'
-lastTaskMsg.style.fontWeight = 'bold'
-lastTaskMsg.style.color = 'var(--clr-accent)'
-taskList.parentNode.insertBefore(lastTaskMsg, taskList)
+// ——— DAILY PROGRESS & TASKS ———
+const progressForm = document.getElementById('progressForm');
+const lastTaskMsg  = document.getElementById('lastTaskMsg');
+const taskList     = document.getElementById('taskList');
 
 progressForm.addEventListener('submit', async e => {
-  e.preventDefault()
-  const entry = progressForm.entry.value
+  e.preventDefault();
+  const entry = progressForm.entry.value.trim();
+  if (!entry) return;
+
   const res = await fetch('/api/daily', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ entry })
-  })
-  if (!res.ok) return alert('Failed to save progress')
-  const data = await res.json()
-  progressForm.reset()
-  lastTaskMsg.textContent = 'Suggested for tomorrow: ' + data.task
-  loadTasks()
-})
+  });
+  if (!res.ok) return alert('Failed to save progress');
+
+  const { task } = await res.json();
+  progressForm.reset();
+  lastTaskMsg.textContent = 'Suggested for tomorrow: ' + task;
+  loadTasks();
+});
 
 async function loadTasks() {
-  const res = await fetch('/api/daily')
-  const tasks = await res.json()
-  taskList.innerHTML = ''
+  const res   = await fetch('/api/daily');
+  if (!res.ok) return;
+  const tasks = await res.json();
+
+  taskList.innerHTML = '';
   tasks.forEach(t => {
-    const li = document.createElement('li')
-    li.textContent = t
-    taskList.appendChild(li)
-  })
+    const li = document.createElement('li');
+    li.textContent = t;
+    taskList.appendChild(li);
+  });
 }
