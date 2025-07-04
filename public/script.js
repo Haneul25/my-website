@@ -198,6 +198,11 @@ async function loadPost(slug) {
 // ——— DAILY TASKS ———
 const progressForm = document.getElementById('progressForm')
 const taskList     = document.getElementById('taskList')
+let lastTaskMsg   = document.createElement('div')
+lastTaskMsg.style.margin = '1rem 0'
+lastTaskMsg.style.fontWeight = 'bold'
+lastTaskMsg.style.color = 'var(--clr-accent)'
+taskList.parentNode.insertBefore(lastTaskMsg, taskList)
 
 progressForm.addEventListener('submit', async e => {
   e.preventDefault()
@@ -208,7 +213,9 @@ progressForm.addEventListener('submit', async e => {
     body: JSON.stringify({ entry })
   })
   if (!res.ok) return alert('Failed to save progress')
+  const data = await res.json()
   progressForm.reset()
+  lastTaskMsg.textContent = 'Suggested for tomorrow: ' + data.task
   loadTasks()
 })
 
