@@ -1,5 +1,5 @@
 // ——— TAB NAVIGATION ———
-const PANELS = ['home','game','gallery','blog']
+const PANELS = ['home','game','gallery','blog','daily']
 
 // cache the tab buttons + panels
 const tabBtns = {}
@@ -18,6 +18,7 @@ function switchTab(active) {
   if (active === 'game')    resetGame()
   if (active === 'gallery') loadGallery()
   if (active === 'blog')    loadPostList()
+  if (active === 'daily')   loadTasks()
 }
 
 // ——— SNAKE GAME ———
@@ -192,4 +193,32 @@ async function loadPost(slug) {
 
   postListEl.classList.add('hidden')
   postDetailEl.classList.remove('hidden')
+}
+
+// ——— DAILY TASKS ———
+const progressForm = document.getElementById('progressForm')
+const taskList     = document.getElementById('taskList')
+
+progressForm.addEventListener('submit', async e => {
+  e.preventDefault()
+  const entry = progressForm.entry.value
+  const res = await fetch('/api/daily', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ entry })
+  })
+  if (!res.ok) return alert('Failed to save progress')
+  progressForm.reset()
+  loadTasks()
+})
+
+async function loadTasks() {
+  const res = await fetch('/api/daily')
+  const tasks = await res.json()
+  taskList.innerHTML = ''
+  tasks.forEach(t => {
+    const li = document.createElement('li')
+    li.textContent = t
+    taskList.appendChild(li)
+  })
 }

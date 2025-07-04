@@ -14,7 +14,7 @@ if (!fs.existsSync(DATA_DIR))    fs.mkdirSync(DATA_DIR)
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR)
 
 // init JSON files
-;['posts.json','comments.json','photos.json'].forEach(fn => {
+;['posts.json','comments.json','photos.json','daily.json'].forEach(fn => {
   const file = path.join(DATA_DIR, fn)
   if (!fs.existsSync(file)) fs.writeFileSync(file, '[]')
 })
@@ -94,6 +94,22 @@ app.post('/api/posts/:slug/comments', (req, res) => {
   comments.push(newC)
   writeJSON('comments.json', comments)
   res.json(newC)
+})
+
+// — Daily Progress & Tasks API —
+app.get('/api/daily', (req, res) => {
+  const daily = readJSON('daily.json')
+  res.json(daily.map(d => d.task))
+})
+app.post('/api/daily', (req, res) => {
+  const { entry } = req.body
+  if (!entry) return res.status(400).json({ error: 'Missing entry.' })
+  const daily = readJSON('daily.json')
+  // Simple task generation: echo a generic suggestion
+  const task = `Continue progress: ${entry.slice(0, 30)}...`
+  daily.unshift({ entry, task, createdAt: Date.now() })
+  writeJSON('daily.json', daily)
+  res.json({ task })
 })
 
 // SPA fallback
