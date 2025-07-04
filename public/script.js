@@ -211,9 +211,9 @@ progressForm.addEventListener('submit', async e => {
   });
   if (!res.ok) return alert('Failed to save progress');
 
-  const { task } = await res.json();
+  const { tasks } = await res.json();
   progressForm.reset();
-  lastTaskMsg.textContent = 'Suggested for tomorrow: ' + task;
+  lastTaskMsg.textContent = 'Suggested for tomorrow: ' + (tasks && tasks.length ? tasks[0] : 'No suggestion');
   loadTasks();
 });
 
