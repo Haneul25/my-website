@@ -21,6 +21,7 @@
   "homepage": "https://github.com/Haneul25/my-website#readme",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^17.0.1",
     "express": "^5.1.0",
     "multer": "^2.0.1",
     "openai": "^5.8.2"

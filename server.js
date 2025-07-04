@@ -1,119 +1,169 @@
-const express = require('express');
-const multer  = require('multer');
-const cors    = require('cors');
-const fs      = require('fs');
-const path    = require('path');
+// server.js
+require('dotenv').config();
+
+const express    = require('express');
+const multer     = require('multer');
+const cors       = require('cors');
+const fs         = require('fs');
+const path       = require('path');
+const { Configuration, OpenAIApi } = require('openai');
 
 const app  = express();
-const PORT = process.env.PORT||4000;
+const PORT = process.env.PORT || 4000;
 
-// ensure directories
-const DATA_DIR    = path.join(__dirname,'data');
-const UPLOADS_DIR = path.join(__dirname,'uploads');
+// —── OpenAI setup ─────────────────────────────────────────────────
+if (!process.env.OPENAI_API_KEY) {
+  console.error('🚨 Missing OPENAI_API_KEY');
+  process.exit(1);
+}
+const openai = new OpenAIApi(
+  new Configuration({ apiKey: process.env.OPENAI_API_KEY })
+);
+
+// —── Ensure data & uploads dirs exist ─────────────────────────────
+const DATA_DIR    = path.join(__dirname, 'data');
+const UPLOADS_DIR = path.join(__dirname, 'uploads');
 if (!fs.existsSync(DATA_DIR))    fs.mkdirSync(DATA_DIR);
 if (!fs.existsSync(UPLOADS_DIR)) fs.mkdirSync(UPLOADS_DIR);
 
-// init JSON files
-;['posts.json','comments.json','photos.json','daily.json'].forEach(fn=>{
-  const p = path.join(DATA_DIR,fn);
-  if (!fs.existsSync(p)) fs.writeFileSync(p,'[]');
+// initialize JSON files if missing
+;['posts.json','comments.json','photos.json','daily.json'].forEach(fn => {
+  const file = path.join(DATA_DIR, fn);
+  if (!fs.existsSync(file)) fs.writeFileSync(file, '[]');
 });
 
-// middlewares
+// —── Middlewares ──────────────────────────────────────────────────
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(UPLOADS_DIR));
-app.use(express.static(path.join(__dirname,'public')));
+app.use(express.static(path.join(__dirname, 'public')));
 
-// multer setup
+// —── Multer for uploads ───────────────────────────────────────────
 const storage = multer.diskStorage({
-  destination:(req,file,cb)=>cb(null,UPLOADS_DIR),
-  filename:   (req,file,cb)=>cb(null,Date.now()+'_'+file.originalname)
+  destination: (req, file, cb) => cb(null, UPLOADS_DIR),
+  filename:    (req, file, cb) =>
+    cb(null, `${Date.now()}_${file.originalname}`)
 });
-const upload = multer({storage});
+const upload = multer({ storage });
 
-// helpers
-function readJSON(fn){ return JSON.parse(
-  fs.readFileSync(path.join(DATA_DIR,fn))
-);}
-function writeJSON(fn,data){
-  fs.writeFileSync(
-    path.join(DATA_DIR,fn),
-    JSON.stringify(data,null,2)
-  );
+// —── JSON file helpers ────────────────────────────────────────────
+function readJSON(fn) {
+  return JSON.parse(fs.readFileSync(path.join(DATA_DIR, fn)));
+}
+function writeJSON(fn, data) {
+  fs.writeFileSync(path.join(DATA_DIR, fn), JSON.stringify(data, null, 2));
 }
 
-// — Gallery API —
-app.get  ('/api/photos',(req,res)=>res.json(readJSON('photos.json')));
-app.post ('/api/photos',upload.single('file'),(req,res)=>{
-  if(!req.file) return res.status(400).json({error:'No file.'});
-  const a = readJSON('photos.json');
-  const record = {
-    url:`/uploads/${req.file.filename}`,
-    filename:req.file.filename,
+// —── Gallery API ─────────────────────────────────────────────────
+app.get('/api/photos', (req, res) => {
+  res.json(readJSON('photos.json'));
+});
+app.post('/api/photos', upload.single('file'), (req, res) => {
+  if (!req.file) return res.status(400).json({ error: 'No file.' });
+  const arr = readJSON('photos.json');
+  const rec = {
+    url:         `/uploads/${req.file.filename}`,
+    filename:    req.file.filename,
     originalName:req.file.originalname,
-    uploadedAt:Date.now()
+    uploadedAt:  Date.now()
   };
-  a.unshift(record);
-  writeJSON('photos.json',a);
-  res.json(record);
+  arr.unshift(rec);
+  writeJSON('photos.json', arr);
+  res.json(rec);
 });
 
-// — Blog API —
-app.get ('/api/posts',(req,res)=>res.json(readJSON('posts.json')));
-app.post('/api/posts',(req,res)=>{
-  const {title,body}=req.body;
-  if(!title||!body) return res.status(400).json({error:'Missing.'});
-  const slug=title.toLowerCase()
+// —── Blog API ────────────────────────────────────────────────────
+app.get('/api/posts', (req, res) => {
+  res.json(readJSON('posts.json'));
+});
+app.post('/api/posts', (req, res) => {
+  const { title, body } = req.body;
+  if (!title || !body) return res.status(400).json({ error: 'Missing.' });
+  const slug = title.toLowerCase()
     .replace(/[^a-z0-9]+/g,'-')
     .replace(/(^-|-$)/g,'');
-  const a=readJSON('posts.json');
-  const newPost={id:Date.now(),slug,title,body,createdAt:Date.now()};
-  a.unshift(newPost);
-  writeJSON('posts.json',a);
-  res.json(newPost);
+  const arr = readJSON('posts.json');
+  const np  = { id:Date.now(), slug, title, body, createdAt:Date.now() };
+  arr.unshift(np);
+  writeJSON('posts.json', arr);
+  res.json(np);
 });
-app.get('/api/posts/:slug',(req,res)=>{
-  const p=readJSON('posts.json')
-    .find(x=>x.slug===req.params.slug);
-  if(!p) return res.status(404).json({error:'Not found'});
+app.get('/api/posts/:slug', (req, res) => {
+  const p = readJSON('posts.json')
+    .find(x => x.slug === req.params.slug);
+  if (!p) return res.status(404).json({ error: 'Not found' });
   res.json(p);
 });
 
-// — Comments API —
-app.get('/api/posts/:slug/comments',(req,res)=>{
-  const all=readJSON('comments.json');
-  res.json(all.filter(c=>c.postId===req.params.slug));
+// —── Comments API ─────────────────────────────────────────────────
+app.get('/api/posts/:slug/comments', (req, res) => {
+  const all = readJSON('comments.json');
+  res.json(all.filter(c => c.postId === req.params.slug));
 });
-app.post('/api/posts/:slug/comments',(req,res)=>{
-  const {author,text}=req.body;
-  if(!author||!text) return res.status(400).json({error:'Missing.'});
-  const all=readJSON('comments.json');
-  const newC={id:Date.now(),postId:req.params.slug,author,text,createdAt:Date.now()};
-  all.push(newC);
-  writeJSON('comments.json',all);
-  res.json(newC);
-});
-
-// — Daily Progress & Tasks API —
-app.get('/api/daily',(req,res)=>{
-  const all = readJSON('daily.json');
-  // return array of task-strings
-  res.json(all.map(d=>d.task));
-});
-app.post('/api/daily',(req,res)=>{
-  const {entry}=req.body;
-  if(!entry) return res.status(400).json({error:'Missing entry.'});
-  const all=readJSON('daily.json');
-  const task=`Continue progress: ${entry.slice(0,30)}...`;
-  all.unshift({entry,task,createdAt:Date.now()});
-  writeJSON('daily.json',all);
-  res.json({task});
+app.post('/api/posts/:slug/comments', (req, res) => {
+  const { author, text } = req.body;
+  if (!author || !text) return res.status(400).json({ error: 'Missing.' });
+  const all = readJSON('comments.json');
+  const nc  = { id:Date.now(), postId:req.params.slug, author, text, createdAt:Date.now() };
+  all.push(nc);
+  writeJSON('comments.json', all);
+  res.json(nc);
 });
 
-// SPA fallback
-app.use((_,res)=>res.sendFile(
-  path.join(__dirname,'public','index.html')
-));
+// —── Daily Progress & LLM Tasks API ──────────────────────────────
 
-app.listen(PORT,()=>console.log(`🚀 Listening at http://localhost:${PORT}`));
+// GET returns a flat list of all past tasks
+app.get('/api/daily', (req, res) => {
+  const daily = readJSON('daily.json');
+  const tasks = daily.flatMap(d => d.tasks);
+  res.json(tasks);
+});
+
+// POST uses OpenAI to generate three specific tasks, saves them, returns { tasks: [...] }
+app.post('/api/daily', async (req, res) => {
+  const { entry } = req.body;
+  if (!entry) return res.status(400).json({ error: 'Missing entry.' });
+
+  try {
+    const messages = [
+      { role: 'system',
+        content: 'You are an assistant that suggests three concise, actionable next steps given a brief daily progress entry.' },
+      { role: 'user',
+        content: `I wrote: "${entry}".\nPlease suggest three specific tasks I can do tomorrow to build on this.` }
+    ];
+
+    const completion = await openai.createChatCompletion({
+      model: 'gpt-3.5-turbo',
+      messages,
+      temperature: 0.7,
+      max_tokens: 150
+    });
+
+    const reply = completion.data.choices[0].message.content.trim();
+    // split lines and strip numbering
+    const tasks = reply
+      .split(/\r?\n/)
+      .map(l => l.replace(/^\s*[\d\-\.\)]*\s*/, ''))
+      .filter(l => l);
+
+    // persist
+    const daily = readJSON('daily.json');
+    daily.unshift({ entry, tasks, createdAt: Date.now() });
+    writeJSON('daily.json', daily);
+
+    res.json({ tasks });
+  } catch (err) {
+    console.error('❌ OpenAI error:', err);
+    res.status(500).json({ error: 'LLM generation failed.' });
+  }
+});
+
+// —── SPA fallback ─────────────────────────────────────────────────
+app.use((_, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// —── Start server ────────────────────────────────────────────────
+app.listen(PORT, () => {
+  console.log(`🚀 Listening at http://localhost:${PORT}`);
+});
