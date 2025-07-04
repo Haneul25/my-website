@@ -194,16 +194,19 @@ async function loadPost(slug) {
   postDetailEl.classList.remove('hidden')
 }
 
-// ——— DAILY PROGRESS & TASKS ———
+// ——— DAILY TASKS ———
 const progressForm = document.getElementById('progressForm');
-const lastTaskMsg  = document.getElementById('lastTaskMsg');
 const taskList     = document.getElementById('taskList');
+
+let lastTaskMsg = document.createElement('div');
+lastTaskMsg.style.margin = '1rem 0';
+lastTaskMsg.style.fontWeight = 'bold';
+lastTaskMsg.style.color = 'var(--clr-accent)';
+taskList.parentNode.insertBefore(lastTaskMsg, taskList);
 
 progressForm.addEventListener('submit', async e => {
   e.preventDefault();
-  const entry = progressForm.entry.value.trim();
-  if (!entry) return;
-
+  const entry = progressForm.entry.value;
   const res = await fetch('/api/daily', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -211,17 +214,23 @@ progressForm.addEventListener('submit', async e => {
   });
   if (!res.ok) return alert('Failed to save progress');
 
-  const { tasks } = await res.json();
+  const data = await res.json();   // now has { tasks: [...] }
   progressForm.reset();
-  lastTaskMsg.textContent = 'Suggested for tomorrow: ' + (tasks && tasks.length ? tasks[0] : 'No suggestion');
+
+  // render the three tasks as a bullet list:
+  lastTaskMsg.innerHTML = `
+    Suggested for tomorrow:
+    <ul>
+      ${data.tasks.map(t => `<li>${t}</li>`).join('')}
+    </ul>
+  `;
+
   loadTasks();
 });
 
 async function loadTasks() {
   const res   = await fetch('/api/daily');
-  if (!res.ok) return;
-  const tasks = await res.json();
-
+  const tasks = await res.json();  // flat array of strings
   taskList.innerHTML = '';
   tasks.forEach(t => {
     const li = document.createElement('li');
@@ -229,3 +238,6 @@ async function loadTasks() {
     taskList.appendChild(li);
   });
 }
+
+// initialize on page load
+loadTasks();
